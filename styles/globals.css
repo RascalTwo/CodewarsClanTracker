@@ -6,6 +6,11 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
+body {
+  background: #222327;
+  color: rgb(239, 239, 239);
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -13,4 +18,43 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+
+sup {
+  color: lime;
+}
+
+sub {
+  color: red;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: 1fr;
+  margin: auto;
+}
+
+.calendar > div {
+  position: relative;
+  border: 1px solid black;
+  white-space: normal;
+  padding: 1rem;
+  word-wrap: anywhere;
+}
+
+img {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 50px;
+}
+
+p {
+  margin: 0;
+}
+
+p:first-of-type {
+  margin-top: 1rem;
 }

@@ -1,5 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
+import { useState } from 'react'
+import { Calendar } from './components/Calendar'
 import { Leaderboard } from './components/Leaderboard'
 import { UserLookup } from './components/UserLookup'
 
@@ -13,6 +15,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main>
+        <Calendar start={new Date(1647388800000)} end={new Date()} />
         <Leaderboard />
         <UserLookup />
       </main>
