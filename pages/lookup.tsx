@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Header from './components/Header';
 import { UserLookup } from './components/UserLookup';
 
 export default function LookupPage() {
@@ -7,6 +8,8 @@ export default function LookupPage() {
       <Head>
         <title>#100Devs Codewars User Lookup</title>
       </Head>
+
+      <Header />
       <main>
         <UserLookup />
       </main>

@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Header from './components/Header';
 import { Leaderboard } from './components/Leaderboard';
 
 export default function LeaderboardPage() {
@@ -7,6 +8,8 @@ export default function LeaderboardPage() {
       <Head>
         <title>#100Devs Codewars User Leaderboard</title>
       </Head>
+
+      <Header />
       <main>
         <Leaderboard />
       </main>

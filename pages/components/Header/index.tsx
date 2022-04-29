@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import Countdown from '../Countdown';
 
 export default function Header() {
+  const [nextDownload, setNextDownload] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/next-data')
+      .then(response => response.json())
+      .then(setNextDownload);
+  }, []);
   return (
     <header>
       <nav>
@@ -20,6 +29,9 @@ export default function Header() {
       <p>
         Tracking the leaderboard changes of users in the <code>#100Devs - leonnoel.com/twitch</code> Codewars Clan
       </p>
+      <aside>
+        Time until new data: <Countdown to={new Date(nextDownload || Date.now())} />
+      </aside>
     </header>
   );
 }

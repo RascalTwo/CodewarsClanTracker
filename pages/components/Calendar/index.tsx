@@ -66,7 +66,6 @@ export function Calendar({ defaultStart, defaultEnd }: { defaultStart?: Date; de
       }
     }
   }
-  console.log(days);
   return (
     <>
       {usernameInput}
