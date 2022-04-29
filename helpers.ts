@@ -122,7 +122,6 @@ async function fetchKataInfo(id: string): Promise<FullKata | CodewarsAPIError> {
     KATA_INFO_MEMORY_CACHE[id] = info;
     return info;
   }
-  console.log('fetch kinfo');
   return fetch('https://www.codewars.com/api/v1/code-challenges/' + id)
     .then((response: any) => response.json())
     .then((info: FullKata) => {
@@ -139,7 +138,6 @@ async function getCompletedKatas(username: string, when: number = Date.now()): P
     if (when <= whenCached) return completedKatas;
   }
 
-  console.log('fetch compled');
   const completedKatas: MinimalKata[] = [];
   let totalPages = 1;
   for (let page = 0; page < totalPages; page++) {
@@ -159,13 +157,11 @@ async function getCompletedKatas(username: string, when: number = Date.now()): P
 
 export async function calculateHonorAndScoreAtTime(username: string, when: number = Date.now()) {
   const completedKatas = await getCompletedKatas(username, when);
-  //console.log(`${completedKatas.length} completed katas found`);
   const consideringKatas = completedKatas.filter(kata => kata.completedAt <= when);
 
   let score = 0;
   let honor = 0;
 
-  //if (consideringKatas.length !== completedKatas.length) console.log(`Considering ${consideringKatas.length} katas`);
   const honorByRank: Record<string, { count: number; honor: number }> = {};
   let completed = 0;
   let failed = [];
@@ -181,7 +177,6 @@ export async function calculateHonorAndScoreAtTime(username: string, when: numbe
     const rn = info.rank.name || 'Beta';
     completed++;
     if (!(rn in honorByRank)) honorByRank[rn] = { count: 0, honor: 0 };
-    if (username === 'dogma-n' && rn === '2 kyu') console.log(kata.id);
     const count = HONOR_FOR_KATAS_BY_RANK[info.rank.name || 'Beta']!;
     honorByRank[rn].count += 1;
     honorByRank[rn].honor += count;
@@ -191,21 +186,6 @@ export async function calculateHonorAndScoreAtTime(username: string, when: numbe
 
     if (info.rank.name === 'Beta') honor++;
   }
-  if (username === 'Rascal_Two') {
-    console.log(consideringKatas.length);
-    console.log(failed);
-    Object.entries(honorByRank)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .forEach(pair => console.log(pair));
-    for (const kata of consideringKatas) {
-      const info = await fetchKataInfo(kata.id);
-      if ('success' in info) {
-        //console.error(info.reason);
-        continue;
-      }
-    }
-  }
-  //console.log();
 
   let rank = '';
   for (const [possibleRank, scoreNeeded] of Object.entries(SCORE_TO_REACH_RANK)) {
