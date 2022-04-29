@@ -56,7 +56,7 @@ function parseUserStatValue(key: keyof RawUserStats, value: ChildNode) {
     case 'Following':
     case 'Followers':
     case 'Allies':
-      return +value.textContent!;
+      return +value.textContent!.replace(/,/g, '')!;
     default:
       return value.textContent!.trim();
   }
