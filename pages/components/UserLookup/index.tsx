@@ -1,5 +1,5 @@
-import { responseSymbol } from 'next/dist/server/web/spec-compliant/fetch-event';
-import { FormEventHandler, useCallback, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useUsernameInput } from '../../hooks';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
 import { RankBadge } from '../RankBadge';
 
@@ -37,9 +37,32 @@ interface CodewarsAPIUser {
 }
 
 export function UserLookup() {
+  const [username, setUsername, usernameInput] = useUsernameInput();
   const [user, setUser] = useState<(CodewarsAPIUser & PublicScrapedUser) | null>(null);
+
+  useEffect(() => {
+    if (!username) return;
+    const timeout = setTimeout(async () => {
+      const data: CodewarsAPIUser | CodewarsAPIFailure = await fetch(
+        'https://www.codewars.com/api/v1/users/' + username,
+      ).then(response => response.json());
+      if ('success' in data) return alert(data.reason);
+
+      const myData: SuccessResponse<PublicScrapedUser> | FailureResponse = await fetch(
+        '/api/user?username=' + username,
+      ).then(response => response.json());
+      if (!myData.success) return alert(myData.message);
+
+      setUser({ ...data, ...myData.data });
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [username]);
+
+  const inCorrectClan = useMemo(() => user?.clan === '#100Devs - leonnoel.com/twitch', [user]);
   return (
     <>
+      {usernameInput}
       {user ? (
         <table>
           <tbody>
@@ -56,6 +79,12 @@ export function UserLookup() {
             <tr>
               <td>Name</td>
               <td>{user.name}</td>
+            </tr>
+            <tr>
+              <td>
+                Clan <span style={{ color: inCorrectClan ? 'green' : 'red' }}>{inCorrectClan ? '✓' : '❌'}</span>
+              </td>
+              <td>{user.clan}</td>
             </tr>
             <tr>
               <td>Last Seen</td>
@@ -90,10 +119,6 @@ export function UserLookup() {
             <tr>
               <td>Honor</td>
               <td>{user.honor}</td>
-            </tr>
-            <tr>
-              <td>Clan</td>
-              <td>{user.clan}</td>
             </tr>
             <tr>
               <td>Global Leaderboard Position</td>
@@ -133,30 +158,6 @@ export function UserLookup() {
           </tbody>
         </table>
       ) : null}
-
-      <form
-        onSubmit={
-          useCallback(async event => {
-            event.preventDefault();
-            const username = ((event.currentTarget as HTMLFormElement).elements[0] as HTMLInputElement).value;
-
-            const data: CodewarsAPIUser | CodewarsAPIFailure = await fetch(
-              'https://www.codewars.com/api/v1/users/' + username,
-            ).then(response => response.json());
-            if ('success' in data) return alert(data.reason);
-
-            const myData: SuccessResponse<PublicScrapedUser> | FailureResponse = await fetch(
-              '/api/user?username=' + username,
-            ).then(response => response.json());
-            if (!myData.success) return alert(myData.message);
-
-            setUser({ ...data, ...myData.data });
-          }, []) as FormEventHandler
-        }
-      >
-        <input placeholder="Username" />
-        <button>Lookup</button>
-      </form>
     </>
   );
 }

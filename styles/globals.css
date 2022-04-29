@@ -1,3 +1,13 @@
+:root {
+  --color-ui-form-label-bg: #282828;
+  --color-ui-header: #121216;
+  --color-ui-form-label-text: #ebebeb;
+  --color-ui-section: #222327;
+  --color-ui-input-bg: #000;
+  --color-ui-input-text: #efefef;
+  --color-ui-link-text-hover: #6795de;
+}
+
 html,
 body {
   padding: 0;
@@ -6,13 +16,17 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
+header {
+  text-align: center;
+}
+
 body {
-  background: #222327;
+  background: #16171b;
   color: rgb(239, 239, 239);
 }
 
 a {
-  color: inherit;
+  color: var(--color-ui-link-text-hover);
   text-decoration: none;
 }
 
@@ -36,7 +50,7 @@ sub {
   margin: auto;
 }
 
-.calendar > div {
+.calendar>div {
   position: relative;
   border: 1px solid black;
   white-space: normal;
@@ -44,7 +58,7 @@ sub {
   word-wrap: anywhere;
 }
 
-img {
+.calendar img {
   position: absolute;
   top: 5px;
   right: 5px;
@@ -57,4 +71,97 @@ p {
 
 p:first-of-type {
   margin-top: 1rem;
+}
+
+.usernameInput {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: max-content;
+  text-align: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-ui-section);
+  padding: .5rem;
+  padding-top: 0.1rem;
+  padding-left: 0.1rem;
+  margin: auto;
+}
+
+.usernameInput label {
+  border-radius: 4px;
+  display: inline-block;
+  width: auto;
+  padding: 2px 4px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  background-color: var(--color-ui-form-label-bg);
+  color: var(--color-ui-form-label-text);
+}
+
+.usernameInput input {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  transition: background-color .15s ease-in-out;
+  font-family: var(--font-sans-serif);
+  font-size: 14px;
+  text-transform: none;
+  line-height: 16px;
+  display: block;
+  height: 34px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 7px;
+  color: var(--color-ui-input-text);
+  border: 1px solid white;
+}
+
+.usernameInput input:is(:hover, :focus, :active) {
+  background: var(--color-ui-input-bg);
+}
+
+details {
+  text-align: left;
+}
+
+details>* {
+  margin-left: 1rem;
+}
+
+details details {
+  margin-left: 1rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  padding-right: 0.25rem;
+}
+
+nav {
+  top: 0;
+  right: 0;
+  padding: 0.5rem;
+  z-index: 1;
+  position: fixed;
+  border: 1px solid white;
+  border-top: 0;
+  border-right: 0;
+  border-bottom-left-radius: .5rem;
+  background: rgba(18, 18, 22, 0.9);
+}
+
+footer {
+  background-color: black;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
 }

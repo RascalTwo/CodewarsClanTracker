@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
+import { useUsernameInput } from '../../hooks';
 import { rankNameToNumber } from '../../shared';
 import { ChangeText } from '../ChangeText';
 import { RankBadge } from '../RankBadge';
@@ -66,6 +68,7 @@ const localYYYYMMDDToDate = (yyyymmdd: string) => {
 
 
 export function Leaderboard() {
+  const [username, setUsername, usernameInput] = useUsernameInput();
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
   const honorChanges = useMemo(
     () =>
@@ -102,9 +105,8 @@ export function Leaderboard() {
   const form = useRef<HTMLFormElement>(null);
 
   const [sortingKey, setSortingKey] = useState<'honor' | 'honorChange'>('honor');
-  const [unFilter, setUnFilter] = useState('');
   const showingUsers = useMemo(() => {
-    const filtered = users.end.filter(u => (u.username || '').toLowerCase().includes(unFilter.toLowerCase()));
+    const filtered = users.end.filter(u => (u.username || '').toLowerCase().includes(username.toLowerCase()));
     return sortingKey === 'honor'
       ? filtered.sort((a, b) => b.honor - a.honor)
       : filtered.sort((a, b) => {
@@ -112,10 +114,11 @@ export function Leaderboard() {
           const bh = honorChanges.find(u => u.username === b.username)?.honorChange || 0;
           return bh - ah;
         });
-  }, [users, sortingKey, honorChanges, unFilter]);
+  }, [users, sortingKey, honorChanges, username]);
 
   return (
     <>
+      {usernameInput}
       <p>{mostHonorable?.username}</p>
       <button
         onClick={() => {
@@ -129,12 +132,12 @@ export function Leaderboard() {
 
           const diff = ed.getTime() - sd.getTime();
           if (!diff) {
-            sd.setTime(sd.getTime() - 86400000)
-            ed.setTime(sd.getTime())
+            sd.setTime(sd.getTime() - 86400000);
+            ed.setTime(sd.getTime());
           } else {
-            const temp = sd.getTime()
-            sd.setTime(sd.getTime() - diff)
-            ed.setTime(temp)
+            const temp = sd.getTime();
+            sd.setTime(sd.getTime() - diff);
+            ed.setTime(temp);
           }
 
           (form.current!.elements[0] as HTMLInputElement).value = dateToYYYYMMDD(sd);
@@ -164,9 +167,9 @@ export function Leaderboard() {
             sd.setTime(ed.getTime() + 86400000);
             ed.setTime(sd.getTime());
           } else {
-            const temp = ed.getTime()
-            ed.setTime(ed.getTime() + diff)
-            sd.setTime(temp)
+            const temp = ed.getTime();
+            ed.setTime(ed.getTime() + diff);
+            sd.setTime(temp);
           }
 
           (form.current!.elements[0] as HTMLInputElement).value = dateToYYYYMMDD(sd);
@@ -217,7 +220,6 @@ export function Leaderboard() {
         <option value="honor">Honor</option>
         <option value="honorChange">Honor Change</option>
       </select>
-      <input placeholder="Username" value={unFilter} onChange={e => setUnFilter(e.currentTarget.value)} />
       <table style={{ margin: 'auto' }}>
         <thead>
           <tr>
@@ -234,8 +236,8 @@ export function Leaderboard() {
             const pos = users.end.findIndex(u => u.username === curr.username);
             const change = startI - pos;
             const honorChange = honorChanges.find(u => u.username === curr.username)?.honorChange || 0;
-            //const honorChange = startI !== -1 ? curr.honor! - users.start[startI].honor! : 0;
             const rank = RANK_STYLES.find(rank => rank.rank === rankNameToNumber(curr.rank))!;
+            if (curr.username === undefined) console.log(curr)
             return (
               <tr key={curr.username}>
                 <td>
@@ -244,7 +246,7 @@ export function Leaderboard() {
                 <td>
                   <RankBadge {...rank} score={0} />
                 </td>
-                <td>{curr.username}</td>
+                <td><Link href={'https://www.codewars.com/users/' + curr.username}>{curr.username}</Link></td>
                 <td>
                   {curr.honor} <ChangeText amount={honorChange}></ChangeText>
                 </td>
