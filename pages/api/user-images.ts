@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { JSDOM } from 'jsdom';
+import cacheData from 'memory-cache';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -32,10 +33,13 @@ async function getUserProfileImageURL(username: string) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const urls: Record<string, string> = {};
   const { usernames } = JSON.parse(req.body);
-  for (const [i, username] of usernames.entries()) {
-    process.stdout.write((i / usernames.length * 100).toFixed(2) + '      \r');
+  const cacheKey = JSON.stringify(usernames.sort());
+  const cached = cacheData.get(cacheKey);
+  if (cached) return res.status(200).send(cached);
+
+  for (const username of usernames) {
     urls[username] = await getUserProfileImageURL(username);
   }
-  console.log()
+  cacheData.put(cacheKey, urls);
   return res.status(200).send(urls);
 }
