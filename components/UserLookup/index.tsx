@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useUsernameInput } from '../../pages/hooks';
+import { useUsernameInput } from '../../hooks';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
 import RankBadge from '../RankBadge';
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useUsernameInput } from '../../pages/hooks';
+import { useUsernameInput } from '../../hooks';
 import ChangeText from '../ChangeText';
 
 interface HonorUser {
