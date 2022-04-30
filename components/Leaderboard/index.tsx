@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
 import { useUsernameInput } from '../../pages/hooks';
 import { rankNameToNumber } from '../../shared';
-import { ChangeText } from '../ChangeText';
-import { RankBadge } from '../RankBadge';
+import ChangeText from '../ChangeText';
+import RankBadge from '../RankBadge';
 
 const RANK_STYLES = [
   {

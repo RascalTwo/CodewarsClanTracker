@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../pages/hooks';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
-import { RankBadge } from '../RankBadge';
+import RankBadge from '../RankBadge';
 
 interface CodewarsAPIFailure {
   success: false;
@@ -69,7 +69,7 @@ export default function UserLookup() {
             <tr>
               <td>Image</td>
               <td>
-                <img src={user.profileImageURL} />
+                <img src={user.profileImageURL} alt={`${user.username} avatar`} />
               </td>
             </tr>
             <tr>

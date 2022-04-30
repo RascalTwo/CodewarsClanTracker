@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../pages/hooks';
-import { ChangeText } from '../ChangeText';
+import ChangeText from '../ChangeText';
 
 interface HonorUser {
   username: string;
@@ -12,7 +12,7 @@ interface HonorUser {
 const MiniUser = (user: HonorUser & { imageURL?: string }) => {
   return (
     <>
-      {user.imageURL ? <img src={user.imageURL} /> : null}
+      {user.imageURL ? <img src={user.imageURL} alt={`${user.username} avatar`} /> : null}
       <Link href={'https://www.codewars.com/users/' + user.username}>{user.username}</Link>
       <ChangeText amount={user.honorChange} />
       <br />
