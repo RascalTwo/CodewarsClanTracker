@@ -1,4 +1,5 @@
-import { ChangeEventHandler, Dispatch, ReactElement, SetStateAction, useCallback, useMemo, useState } from 'react';
+import type { ChangeEventHandler, Dispatch, ReactElement, SetStateAction } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function useUsernameInput(): [string, Dispatch<SetStateAction<string>>, ReactElement] {
   const [username, setUsername] = useState('');

@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { RankInfo } from '../../types';
 import styles from './RankBadge.module.css';
 
