@@ -61,18 +61,8 @@ const CACHED_RESPONSE = fs.existsSync('./cache/calendar.json')
   ? JSON.parse(fs.readFileSync('./cache/calendar.json').toString())
   : { times: [], response: null, started: false };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (CACHED_RESPONSE.started) {
-    console.log('Waiting for previous request to finish...');
-    while (CACHED_RESPONSE.started) await new Promise(resolve => setTimeout(resolve, 5000));
-  }
-
-  const filenames = (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!)).sort().slice(1);
-  const times = filenames.map(filename => +filename.split('.')[0]);
-
-  if (JSON.stringify(times) === JSON.stringify(CACHED_RESPONSE.times)) return res.send(CACHED_RESPONSE.response);
-  console.log('Generating new data...');
-
+export async function generateNewCalendarData(times: number[]) {
+  console.log('Generating new calendar data...');
   const end = times.at(-1)!;
 
   CACHED_RESPONSE.started = true;
@@ -109,12 +99,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = { days, months, weeks };
     CACHED_RESPONSE.times = times;
     CACHED_RESPONSE.response = response;
-    return res.send(response);
+    return response;
   } catch (err) {
     console.error(err);
-    return res.status(500).send(err);
+    throw err;
   } finally {
     CACHED_RESPONSE.started = false;
     await fs.promises.writeFile('./cache/calendar.json', JSON.stringify(CACHED_RESPONSE, null, '  '));
+    console.log('New calendar data generated...');
   }
+}
+
+export const getDailyClanTimes = async () =>
+  (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!))
+    .sort()
+    .slice(1)
+    .map(filename => +filename.split('.')[0]);
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (CACHED_RESPONSE.started) {
+    if (CACHED_RESPONSE.response) return res.send(CACHED_RESPONSE.response);
+    console.log('Waiting for previous request to finish generating first calendar data...');
+    while (CACHED_RESPONSE.started) await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+
+  const times = await getDailyClanTimes();
+
+  if (JSON.stringify(times) === JSON.stringify(CACHED_RESPONSE.times)) return res.send(CACHED_RESPONSE.response);
+
+  const generator = generateNewCalendarData(times);
+
+  if (CACHED_RESPONSE.response) {
+    console.log('Using previous calendar data while requesting new calendar data...');
+    return res.send(CACHED_RESPONSE.response);
+  }
+  console.log('Generating first calendar data...');
+  return res.send(await generator);
 }

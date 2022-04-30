@@ -29,7 +29,14 @@ export default function Header() {
       <p>
         Tracking the leaderboard changes of users in the <code>#100Devs - leonnoel.com/twitch</code> Codewars Clan
       </p>
-      <aside>
+      <aside
+        onContextMenu={useCallback((e: React.MouseEvent) => {
+          e.preventDefault();
+          return fetch('/api/generate-new', { method: 'POST', body: prompt('Generation Password:') })
+            .then(response => response.text())
+            .then(alert);
+        }, [])}
+      >
         Time until new data: <Countdown to={new Date(nextDownload || Date.now())} />
       </aside>
     </header>
