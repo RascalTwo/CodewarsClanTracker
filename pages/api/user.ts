@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { JSDOM } from 'jsdom';
 
-import { rankNameToNumber } from '../shared';
+import { rankNameToNumber } from '../../shared';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type {
@@ -11,7 +11,7 @@ import type {
   SuccessResponse,
   PublicScrapedUser,
   ProfileKey,
-} from '../types';
+} from '../../types';
 
 const SHORT_MONTHS = Array.from({ length: 12 }, (_, i) =>
   new Date(0, i).toLocaleString(undefined, { month: 'short' }).toLowerCase(),

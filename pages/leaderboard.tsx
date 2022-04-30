@@ -1,6 +1,6 @@
 import Head from 'next/head';
-import Header from './components/Header';
-import { Leaderboard } from './components/Leaderboard';
+import Header from '../components/Header';
+import Leaderboard from '../components/Leaderboard';
 
 export default function LeaderboardPage() {
   return (

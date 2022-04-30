@@ -1,6 +1,6 @@
 import Head from 'next/head';
-import Header from './components/Header';
-import { UserLookup } from './components/UserLookup';
+import Header from '../components/Header';
+import UserLookup from '../components/UserLookup';
 
 export default function LookupPage() {
   return (

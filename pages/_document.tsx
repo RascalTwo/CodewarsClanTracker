@@ -1,6 +1,6 @@
 import Document, { Html, Main, NextScript, Head } from 'next/document';
-import Footer from './components/Footer';
-import Header from './components/Header';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
 
 export default class MyDocument extends Document {
   render() {

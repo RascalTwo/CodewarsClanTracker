@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useUsernameInput } from '../../hooks';
+import { useUsernameInput } from '../../pages/hooks';
 import { ChangeText } from '../ChangeText';
 
 interface HonorUser {
@@ -19,7 +19,7 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
     </>
   );
 };
-export function Calendar({ defaultStart, defaultEnd }: { defaultStart?: Date; defaultEnd?: Date }) {
+export default function Calendar({ defaultStart, defaultEnd }: { defaultStart?: Date; defaultEnd?: Date }) {
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [data, setData] = useState<Record<'days' | 'months' | 'weeks', Record<number, HonorUser[]>>>({
     days: {},

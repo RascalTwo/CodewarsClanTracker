@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useMemo, useRef, useState } from 'react';
-import { useUsernameInput } from '../../hooks';
+import { useUsernameInput } from '../../pages/hooks';
 import { rankNameToNumber } from '../../shared';
 import { ChangeText } from '../ChangeText';
 import { RankBadge } from '../RankBadge';
@@ -67,7 +67,7 @@ const localYYYYMMDDToDate = (yyyymmdd: string) => {
 };
 
 
-export function Leaderboard() {
+export default function Leaderboard() {
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
   const honorChanges = useMemo(

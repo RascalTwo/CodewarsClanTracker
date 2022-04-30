@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useUsernameInput } from '../../hooks';
+import { useUsernameInput } from '../../pages/hooks';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
 import { RankBadge } from '../RankBadge';
 
@@ -36,7 +36,7 @@ interface CodewarsAPIUser {
   };
 }
 
-export function UserLookup() {
+export default function UserLookup() {
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [user, setUser] = useState<(CodewarsAPIUser & PublicScrapedUser) | null>(null);
 

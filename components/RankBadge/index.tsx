@@ -10,7 +10,7 @@ const COLOR_NAME: Record<string, string> = {
 	red: '--color-legacy-unsat-red'
 };
 
-export function RankBadge({ color, name, rank, score }: RankInfo) {
+export default function RankBadge({ color, name, rank, score }: RankInfo) {
   return (
     <div className={styles.rankBadge} style={{ '--color-rank': `var(${COLOR_NAME[color]!})` } as CSSProperties}>
       <div>
