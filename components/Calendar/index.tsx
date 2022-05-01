@@ -19,7 +19,7 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
     </>
   );
 };
-export default function Calendar({ defaultStart, defaultEnd }: { defaultStart?: Date; defaultEnd?: Date }) {
+export default function Calendar({ start, end }: { start?: Date; end?: Date }) {
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [data, setData] = useState<Record<'days' | 'months' | 'weeks', Record<number, HonorUser[]>>>({
     days: {},
@@ -44,16 +44,20 @@ export default function Calendar({ defaultStart, defaultEnd }: { defaultStart?: 
       .then(newURLs => setProfileImageURLs(curr => ({ ...curr, ...newURLs })));
   }, [usernames, profileImageURLs]);
 
-  const rows = [];
-  let current = new Date(defaultStart || Date.now());
-  current.setUTCDate(current.getUTCDate() - current.getUTCDay());
-  let stop = new Date(defaultEnd || Date.now());
-  if (stop.getUTCDay() !== 6) stop.setDate(stop.getUTCDate() + 6 - stop.getUTCDay());
-  while (current.toDateString() !== stop.toDateString()) {
-    rows.push(new Date(current.getTime()));
-    if (current.getUTCDay() === 0) rows.push(new Date(current.getTime()));
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
+  const rows = useMemo(() => {
+    const rows = [];
+    let current = new Date(start || Date.now());
+    current.setUTCDate(current.getUTCDate() - current.getUTCDay());
+    let stop = new Date(end || Date.now());
+    if (stop.getUTCDay() !== 6) stop.setDate(stop.getUTCDate() + 6 - stop.getUTCDay());
+    while (current.toDateString() !== stop.toDateString()) {
+      rows.push(new Date(current.getTime()));
+      if (current.getUTCDay() === 0) rows.push(new Date(current.getTime()));
+      current.setUTCDate(current.getUTCDate() + 1);
+    }
+    return rows;
+  }, [start, end]);
+
   const days: Record<number, Record<string, HonorUser>> = {};
   for (const [epoch, users] of Object.entries(data.days)) {
     const day = new Date(+epoch).getUTCDay();

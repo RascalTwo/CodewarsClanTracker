@@ -12,7 +12,7 @@ export default function HomePage({ start }: { start: number }) {
 
       <Header />
       <main>
-        <Calendar defaultStart={new Date(start)} defaultEnd={new Date()} />
+        <Calendar start={new Date(start)} />
       </main>
     </>
   );
