@@ -106,7 +106,7 @@ export async function generateNewCalendarData(times: number[]) {
   } finally {
     CACHED_RESPONSE.started = false;
     await fs.promises.writeFile('./cache/calendar.json', JSON.stringify(CACHED_RESPONSE, null, '  '));
-    console.log('New calendar data generated...');
+    console.log('New calendar data generated.');
   }
 }
 

@@ -19,9 +19,7 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
     </>
   );
 };
-export default function Calendar({ start }: { start?: Date }) {
-  console.log({ start });
-
+export default function Calendar() {
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [data, setData] = useState<Record<'days' | 'months' | 'weeks', Record<number, HonorUser[]>>>({
     days: {},
@@ -48,8 +46,11 @@ export default function Calendar({ start }: { start?: Date }) {
 
   const rows = useMemo(() => {
     const rows = [];
-    let current = new Date(start || Date.now());
+    let current = new Date(
+      Object.keys(data.days).length ? Math.min(...Object.keys(data.days).map(Number)) : Date.now(),
+    );
     current.setUTCDate(current.getUTCDate() - current.getUTCDay());
+
     let stop = new Date(Date.now() + 86400000);
     if (stop.getUTCDay() !== 6) stop.setDate(stop.getUTCDate() + 6 - stop.getUTCDay());
     while (current.toDateString() !== stop.toDateString()) {
@@ -58,7 +59,7 @@ export default function Calendar({ start }: { start?: Date }) {
       current.setUTCDate(current.getUTCDate() + 1);
     }
     return rows;
-  }, [start]);
+  }, [data.days]);
 
   const days = useMemo(() => {
     const days: Record<number, Record<string, HonorUser>> = {};

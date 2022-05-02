@@ -12,20 +12,8 @@ export default function HomePage({ start }: { start: number }) {
 
       <Header />
       <main>
-        <Calendar start={new Date(start)} />
+        <Calendar />
       </main>
     </>
   );
-}
-
-export async function getStaticProps() {
-  return {
-    props: {
-      start: +(
-        (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!))
-          .filter(filename => filename.endsWith('.json'))
-          .sort()[0] || Date.now().toString() + '.'
-      ).split('.')[0],
-    },
-  };
 }
