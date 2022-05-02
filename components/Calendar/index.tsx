@@ -19,7 +19,9 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
     </>
   );
 };
-export default function Calendar({ start, end }: { start?: Date; end?: Date }) {
+export default function Calendar({ start }: { start?: Date }) {
+  console.log({ start });
+
   const [username, setUsername, usernameInput] = useUsernameInput();
   const [data, setData] = useState<Record<'days' | 'months' | 'weeks', Record<number, HonorUser[]>>>({
     days: {},
@@ -48,7 +50,7 @@ export default function Calendar({ start, end }: { start?: Date; end?: Date }) {
     const rows = [];
     let current = new Date(start || Date.now());
     current.setUTCDate(current.getUTCDate() - current.getUTCDay());
-    let stop = new Date(end || Date.now());
+    let stop = new Date(Date.now() + 86400000);
     if (stop.getUTCDay() !== 6) stop.setDate(stop.getUTCDate() + 6 - stop.getUTCDay());
     while (current.toDateString() !== stop.toDateString()) {
       rows.push(new Date(current.getTime()));
@@ -56,20 +58,23 @@ export default function Calendar({ start, end }: { start?: Date; end?: Date }) {
       current.setUTCDate(current.getUTCDate() + 1);
     }
     return rows;
-  }, [start, end]);
+  }, [start]);
 
-  const days: Record<number, Record<string, HonorUser>> = {};
-  for (const [epoch, users] of Object.entries(data.days)) {
-    const day = new Date(+epoch).getUTCDay();
-    if (!(day in days)) days[day] = {};
-    for (const user of users) {
-      if (!(user.username in days[day])) days[day][user.username] = { ...user };
-      else {
-        days[day][user.username].honorChange += user.honorChange;
-        days[day][user.username].honor + user.honor;
+  const days = useMemo(() => {
+    const days: Record<number, Record<string, HonorUser>> = {};
+    for (const [epoch, users] of Object.entries(data.days)) {
+      const day = new Date(+epoch).getUTCDay();
+      if (!(day in days)) days[day] = {};
+      for (const user of users) {
+        if (!(user.username in days[day])) days[day][user.username] = { ...user };
+        else {
+          days[day][user.username].honorChange += user.honorChange;
+          days[day][user.username].honor + user.honor;
+        }
       }
     }
-  }
+    return days;
+  }, [data.days]);
   return (
     <>
       {usernameInput}

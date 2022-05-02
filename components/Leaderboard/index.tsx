@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
 import { rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
@@ -116,6 +116,12 @@ export default function Leaderboard() {
         });
   }, [users, sortingKey, honorChanges, username]);
 
+  useEffect(() => {
+    fetch(`/api/leaderboard?start=${Date.now()}&end=${Date.now()}`)
+      .then(r => r.json())
+      .then(setUsers);
+  }, []);
+
   return (
     <>
       {usernameInput}
@@ -207,7 +213,7 @@ export default function Leaderboard() {
       >
         <label>
           Start
-          <input type="date"></input>
+          <input type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
         </label>
         <label>
           End
@@ -237,7 +243,7 @@ export default function Leaderboard() {
             const change = startI - pos;
             const honorChange = honorChanges.find(u => u.username === curr.username)?.honorChange || 0;
             const rank = RANK_STYLES.find(rank => rank.rank === rankNameToNumber(curr.rank))!;
-            if (curr.username === undefined) console.log(curr)
+            if (curr.username === undefined) console.log(curr);
             return (
               <tr key={curr.username}>
                 <td>
@@ -246,7 +252,9 @@ export default function Leaderboard() {
                 <td>
                   <RankBadge {...rank} score={0} />
                 </td>
-                <td><Link href={'https://www.codewars.com/users/' + curr.username}>{curr.username}</Link></td>
+                <td>
+                  <Link href={'https://www.codewars.com/users/' + curr.username}>{curr.username}</Link>
+                </td>
                 <td>
                   {curr.honor} <ChangeText amount={honorChange}></ChangeText>
                 </td>

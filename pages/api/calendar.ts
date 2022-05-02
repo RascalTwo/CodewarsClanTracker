@@ -112,8 +112,8 @@ export async function generateNewCalendarData(times: number[]) {
 
 export const getDailyClanTimes = async () =>
   (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!))
+    .filter(filename => filename.endsWith('.json'))
     .sort()
-    .slice(1)
     .map(filename => +filename.split('.')[0]);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

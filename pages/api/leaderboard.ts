@@ -19,7 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const cached = cacheData.get(cacheKey);
   if (cached) return res.send(cached);
 
-  const filenames = (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!)).sort().slice(1);
+  const filenames = (await fs.promises.readdir(process.env.DAILY_CLAN_DIRECTORY!))
+    .filter(filename => filename.endsWith('.json'))
+    .sort();
   const times = filenames.map(filename => +filename.split('.')[0]);
   const startFilename = getNearest(startTime, times);
   const endFilename = getNearest(endTime, times);
