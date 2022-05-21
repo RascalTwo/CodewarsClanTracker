@@ -1,0 +1,11 @@
+.form fieldset {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	text-align: center;
+}
+.form fieldset button {
+	grid-column: 1 / 3;
+}
+.form fieldset legend {
+	margin: auto;
+}

@@ -4,6 +4,7 @@ import { useUsernameInput } from '../../hooks';
 import { rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
 import RankBadge from '../RankBadge';
+import styles from './Loaderboard.module.css';
 
 const RANK_STYLES = [
   {
@@ -69,6 +70,7 @@ const localYYYYMMDDToDate = (yyyymmdd: string) => {
 
 export default function Leaderboard() {
   const [username, setUsername, usernameInput] = useUsernameInput();
+  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
   const honorChanges = useMemo(
     () =>
@@ -117,6 +119,7 @@ export default function Leaderboard() {
   }, [users, sortingKey, honorChanges, username]);
 
   useEffect(() => {
+    setLoading(true);
     const today = new Date();
     today.setUTCHours(0);
     today.setUTCMinutes(0);
@@ -124,7 +127,8 @@ export default function Leaderboard() {
     today.setUTCMilliseconds(0);
     fetch(`/api/leaderboard?start=${today.getTime()}&end=${today.getTime()}`)
       .then(r => r.json())
-      .then(setUsers);
+      .then(setUsers)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -132,6 +136,7 @@ export default function Leaderboard() {
       {usernameInput}
       <p>{mostHonorable?.username}</p>
       <button
+        disabled={loading}
         onClick={() => {
           let startDate = (form.current!.elements[0] as HTMLInputElement).value;
           let endDate = (form.current!.elements[1] as HTMLInputElement).value;
@@ -163,6 +168,7 @@ export default function Leaderboard() {
         Prev
       </button>
       <button
+        disabled={loading}
         onClick={() => {
           let startDate = (form.current!.elements[0] as HTMLInputElement).value;
           let endDate = (form.current!.elements[1] as HTMLInputElement).value;
@@ -195,6 +201,7 @@ export default function Leaderboard() {
         Next
       </button>
       <form
+        className={styles.form}
         ref={form}
         style={{ display: 'flex', flexDirection: 'column', width: 'max-content', margin: 'auto' }}
         onSubmit={e => {
@@ -216,18 +223,21 @@ export default function Leaderboard() {
             });
         }}
       >
-        <label>
-          Start
-          <input type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
-        </label>
-        <label>
-          End
-          <input type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
-        </label>
-        <button>Fetch</button>
+        <fieldset disabled={loading}>
+          <legend>Comparison Dates</legend>
+          <label htmlFor="startDate">Start</label>
+          <input id="startDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
+          <label htmlFor="startDate">End</label>
+          <input id="startDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
+          <button>Fetch</button>
+        </fieldset>
       </form>
 
-      <select value={sortingKey} onChange={e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange')}>
+      <select
+        disabled={loading}
+        value={sortingKey}
+        onChange={e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange')}
+      >
         <option value="honor">Honor</option>
         <option value="honorChange">Honor Change</option>
       </select>
