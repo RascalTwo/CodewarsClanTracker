@@ -117,7 +117,12 @@ export default function Leaderboard() {
   }, [users, sortingKey, honorChanges, username]);
 
   useEffect(() => {
-    fetch(`/api/leaderboard?start=${Date.now()}&end=${Date.now()}`)
+    const today = new Date();
+    today.setUTCHours(0);
+    today.setUTCMinutes(0);
+    today.setUTCSeconds(0);
+    today.setUTCMilliseconds(0);
+    fetch(`/api/leaderboard?start=${today.getTime()}&end=${today.getTime()}`)
       .then(r => r.json())
       .then(setUsers);
   }, []);
