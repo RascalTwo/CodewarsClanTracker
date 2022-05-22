@@ -70,8 +70,11 @@ const localYYYYMMDDToDate = (yyyymmdd: string) => {
 
 export default function Leaderboard() {
   const [username, setUsername, usernameInput] = useUsernameInput();
-  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
+
+  const [loading, setLoading] = useState(false);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
+  const [pageNumber, setPageNumber] = useState(1);
   const honorChanges = useMemo(
     () =>
       Object.values(users.end)
@@ -90,19 +93,6 @@ export default function Leaderboard() {
         .sort((a, b) => b.honorChange - a.honorChange),
     [users],
   );
-  const mostHonorable = useMemo(() => {
-    let best = 0;
-    let bu = users.start[0];
-    users.end.forEach((curr, i) => {
-      const startI = users.start.findIndex(u => u.username === curr.username);
-      const honorChange = startI !== -1 ? curr.honor! - users.start[startI].honor! : 0;
-      if (honorChange > best) {
-        best = honorChange;
-        bu = curr;
-      }
-    });
-    return bu;
-  }, [users]);
 
   const form = useRef<HTMLFormElement>(null);
 
@@ -131,84 +121,26 @@ export default function Leaderboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const startIndex = (pageNumber - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+
+  const pagedUsers = useMemo(() => showingUsers.slice(startIndex, endIndex), [showingUsers, startIndex, endIndex]);
+
+  useEffect(() => {
+    if (!pagedUsers.length && pageNumber > 1) setPageNumber(pageNumber - 1);
+  }, [pagedUsers, pageNumber]);
+
   return (
     <>
       {usernameInput}
-      <p>{mostHonorable?.username}</p>
-      <button
-        disabled={loading}
-        onClick={() => {
-          let startDate = (form.current!.elements[0] as HTMLInputElement).value;
-          let endDate = (form.current!.elements[1] as HTMLInputElement).value;
-          if (!startDate) startDate = endDate;
-          //const sd = localYYYYMMDDToDate(startDate);
-          //const ed = localYYYYMMDDToDate(endDate);
-          const sd = new Date(startDate);
-          const ed = new Date(endDate);
-
-          const diff = ed.getTime() - sd.getTime();
-          if (!diff) {
-            sd.setTime(sd.getTime() - 86400000);
-            ed.setTime(sd.getTime());
-          } else {
-            const temp = sd.getTime();
-            sd.setTime(sd.getTime() - diff);
-            ed.setTime(temp);
-          }
-
-          (form.current!.elements[0] as HTMLInputElement).value = dateToYYYYMMDD(sd);
-          (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(ed);
-          fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
-            .then(r => r.json())
-            .then(data => {
-              setUsers(data);
-            });
-        }}
-      >
-        Prev
-      </button>
-      <button
-        disabled={loading}
-        onClick={() => {
-          let startDate = (form.current!.elements[0] as HTMLInputElement).value;
-          let endDate = (form.current!.elements[1] as HTMLInputElement).value;
-          if (!startDate) startDate = endDate;
-          //const sd = localYYYYMMDDToDate(startDate);
-          //const ed = localYYYYMMDDToDate(endDate);
-          const sd = new Date(startDate);
-          const ed = new Date(endDate);
-
-          const diff = ed.getTime() - sd.getTime();
-
-          if (!diff) {
-            sd.setTime(ed.getTime() + 86400000);
-            ed.setTime(sd.getTime());
-          } else {
-            const temp = ed.getTime();
-            ed.setTime(ed.getTime() + diff);
-            sd.setTime(temp);
-          }
-
-          (form.current!.elements[0] as HTMLInputElement).value = dateToYYYYMMDD(sd);
-          (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(ed);
-          fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
-            .then(r => r.json())
-            .then(data => {
-              setUsers(data);
-            });
-        }}
-      >
-        Next
-      </button>
       <form
-        className={styles.form}
+        style={{ float: 'left' }}
         ref={form}
-        style={{ display: 'flex', flexDirection: 'column', width: 'max-content', margin: 'auto' }}
         onSubmit={e => {
           e.preventDefault();
-          let startDate = (e.currentTarget.elements[0] as HTMLInputElement).value;
+          let startDate = (e.currentTarget.elements[1] as HTMLInputElement).value;
 
-          let endDate = (e.currentTarget.elements[1] as HTMLInputElement).value;
+          let endDate = (e.currentTarget.elements[2] as HTMLInputElement).value;
 
           if (!startDate) startDate = endDate;
           //const sd = localYYYYMMDDToDate(startDate);
@@ -223,25 +155,115 @@ export default function Leaderboard() {
             });
         }}
       >
-        <fieldset disabled={loading}>
+        <fieldset className={styles.fieldset} disabled={loading}>
           <legend>Comparison Dates</legend>
           <label htmlFor="startDate">Start</label>
           <input id="startDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
-          <label htmlFor="startDate">End</label>
-          <input id="startDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
-          <button>Fetch</button>
+          <label htmlFor="endDate">End</label>
+          <input id="endDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
+          <button type="submit">Fetch</button>
+
+          <button
+            disabled={loading}
+            onClick={() => {
+              let startDate = (form.current!.elements[1] as HTMLInputElement).value;
+              let endDate = (form.current!.elements[2] as HTMLInputElement).value;
+              if (!startDate) startDate = endDate;
+              //const sd = localYYYYMMDDToDate(startDate);
+              //const ed = localYYYYMMDDToDate(endDate);
+              const sd = new Date(startDate);
+              const ed = new Date(endDate);
+
+              const diff = ed.getTime() - sd.getTime();
+              if (!diff) {
+                sd.setTime(sd.getTime() - 86400000);
+                ed.setTime(sd.getTime());
+              } else {
+                const temp = sd.getTime();
+                sd.setTime(sd.getTime() - diff);
+                ed.setTime(temp);
+              }
+
+              (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(sd);
+              (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(ed);
+              fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
+                .then(r => r.json())
+                .then(data => {
+                  setUsers(data);
+                });
+            }}
+          >
+            Previous
+          </button>
+          <button
+            disabled={loading}
+            onClick={() => {
+              let startDate = (form.current!.elements[1] as HTMLInputElement).value;
+              let endDate = (form.current!.elements[2] as HTMLInputElement).value;
+              if (!startDate) startDate = endDate;
+              //const sd = localYYYYMMDDToDate(startDate);
+              //const ed = localYYYYMMDDToDate(endDate);
+              const sd = new Date(startDate);
+              const ed = new Date(endDate);
+
+              const diff = ed.getTime() - sd.getTime();
+
+              if (!diff) {
+                sd.setTime(ed.getTime() + 86400000);
+                ed.setTime(sd.getTime());
+              } else {
+                const temp = ed.getTime();
+                ed.setTime(ed.getTime() + diff);
+                sd.setTime(temp);
+              }
+
+              (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(sd);
+              (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(ed);
+              fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
+                .then(r => r.json())
+                .then(data => {
+                  setUsers(data);
+                });
+            }}
+          >
+            Next
+          </button>
+          <label htmlFor="sortingBy">Sort By</label>
+
+          <select
+            id="sortingBy"
+            disabled={loading}
+            value={sortingKey}
+            onChange={e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange')}
+          >
+            <option value="honor">Honor</option>
+            <option value="honorChange">Honor Change</option>
+          </select>
         </fieldset>
       </form>
+      <fieldset disabled={loading} className={[styles.fieldset, styles.pagination].join(' ')}>
+        <legend>Pagination</legend>
 
-      <select
-        disabled={loading}
-        value={sortingKey}
-        onChange={e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange')}
-      >
-        <option value="honor">Honor</option>
-        <option value="honorChange">Honor Change</option>
-      </select>
-      <table style={{ margin: 'auto' }}>
+        <label htmlFor="rowsPerPage">Rows</label>
+        <input
+          id="rowsPerPage"
+          type="number"
+          value={rowsPerPage}
+          onChange={e => setRowsPerPage(+e.currentTarget.value)}
+        />
+
+        <label htmlFor="pageNumber">Page #</label>
+        <input
+          id="pageNumber"
+          min="1"
+          max={Math.ceil(showingUsers.length / rowsPerPage)}
+          type="number"
+          value={pageNumber}
+          onChange={e => setPageNumber(+e.currentTarget.value)}
+        />
+      </fieldset>
+
+      <table className={styles.table}>
         <thead>
           <tr>
             <th>Position</th>
@@ -250,9 +272,8 @@ export default function Leaderboard() {
             <th>Honor</th>
           </tr>
         </thead>
-        <tbody></tbody>
-        <tfoot>
-          {showingUsers.map(curr => {
+        <tbody>
+          {pagedUsers.map(curr => {
             const startI = users.start.findIndex(u => u.username === curr.username);
             const pos = users.end.findIndex(u => u.username === curr.username);
             const change = startI - pos;
@@ -276,7 +297,8 @@ export default function Leaderboard() {
               </tr>
             );
           })}
-        </tfoot>
+        </tbody>
+        <tfoot></tfoot>
       </table>
     </>
   );
