@@ -24,7 +24,6 @@ async function fetchUserProfileImageURL(username: string) {
 async function getUserProfileImageURL(username: string) {
   if (username in PROFILE_IMAGE_URL_CACHE) return PROFILE_IMAGE_URL_CACHE[username];
   const url = await fetchUserProfileImageURL(username);
-  if (!url) return null;
   PROFILE_IMAGE_URL_CACHE[username] = url;
   await fs.promises.writeFile('./cache/profile-images.json', JSON.stringify(PROFILE_IMAGE_URL_CACHE, null, '  '));
   return url;
