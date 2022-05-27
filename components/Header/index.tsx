@@ -23,9 +23,12 @@ export default function Header() {
           <li>
             <Link href="/lookup">Lookup</Link>
           </li>
+          <li>
+            <Link href="/faq">FAQ</Link>
+          </li>
         </ul>
       </nav>
-      <h1>#100Devs Codewars Clan Tracker</h1>
+      <h1>Codewars Clan Tracker</h1>
       <p>
         Tracking the leaderboard changes of users in the <code>#100Devs - leonnoel.com/twitch</code> Codewars Clan
       </p>
