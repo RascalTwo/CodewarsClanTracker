@@ -6,7 +6,7 @@ export default function FAQ() {
   return (
     <>
       <Head>
-        <title>#100Devs Codewars User Leaderboard</title>
+        <title>#100Devs Codewars FAQ</title>
       </Head>
 
       <Header />
@@ -46,6 +46,20 @@ export default function FAQ() {
             Go to your <code>Account Settings</code>, paste <code>#100Devs - leonnoel.com/twitch</code> into the{' '}
             <code>Clan (Company, School or Organization)</code> field, and click <code>Update</code> at the bottom of
             the page.
+          </p>
+        </details>
+        <details>
+          <summary>How can I validate past data accuracy?</summary>
+
+          <p>
+            Unfortunately there is no way to do this simply, as the data is not being preserved by anything aside from this application. The only way to validate the data accuracy is to run your own copy of the downloading scripts yourself, which of course only works for future and not past data.
+          </p>
+        </details>
+        <details>
+          <summary>Can I see the data?</summary>
+
+          <p>
+            Yes you can! All the original data is downloadable via a <Link href="/api/download"><a download="data.zip">.ZIP file</a></Link>
           </p>
         </details>
       </main>
