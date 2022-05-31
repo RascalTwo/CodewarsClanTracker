@@ -6,8 +6,8 @@ import { getDailyClanTimes, readJSONFile } from '../../helpers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const times = await getDailyClanTimes();
-  const cacheKey = JSON.stringify(times.sort());
-  const cached = cacheData.get(cacheKey);
+  const cacheKey = JSON.stringify(times);
+  const cached = cacheData.get('userlist-' + cacheKey);
   if (cached) return res.status(200).send(cached);
 
   const usernameSet = new Set();

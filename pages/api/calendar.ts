@@ -6,7 +6,7 @@ import { generateNewCalendarData, getDailyClanTimes } from '../../helpers';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const times = await getDailyClanTimes();
 
-  const cacheKey = JSON.stringify(times);
+  const cacheKey = 'calendar-' + JSON.stringify(times);
   const cached = cacheData.get(cacheKey);
   if (cached) return res.send(cached);
 
