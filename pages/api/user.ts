@@ -12,6 +12,7 @@ import type {
   PublicScrapedUser,
   ProfileKey,
 } from '../../types';
+import { generateNewHallData, getDailyClanTimes } from '../../helpers';
 
 const SHORT_MONTHS = Array.from({ length: 12 }, (_, i) =>
   new Date(0, i).toLocaleString(undefined, { month: 'short' }).toLowerCase(),
@@ -151,9 +152,23 @@ export default async function handler(
     .then(async html => {
       if (!html) return res.status(200).send({ success: false, message: 'Username not found' });
 
-      await fs.promises.writeFile('debug.html', html);
       const jsdom = new JSDOM(html);
       const profileImageURL = (jsdom.window.document.querySelector('.profile-pic img') as HTMLImageElement)!.src;
+
+      const achievements = [];
+      const hallData = await generateNewHallData(await getDailyClanTimes());
+      // @ts-ignore
+      for (const period in hallData) {
+        // @ts-ignore
+        for (const when in hallData[period]) {
+          // @ts-ignore
+          for (const type in hallData[period][when]) {
+            // @ts-ignore
+            const placedIndex = hallData[period][when][type].findIndex(user => user.username === username);
+            if (placedIndex !== -1) achievements.push({ period, type, placedIndex });
+          }
+        }
+      }
 
       return res.status(200).send({
         success: true,
@@ -162,6 +177,8 @@ export default async function handler(
           ...parseProgressStats(jsdom.window.document.querySelector('.stat-category')!),
           profileImageURL,
           username,
+          // @ts-ignore
+          achievements,
         },
       });
     });
