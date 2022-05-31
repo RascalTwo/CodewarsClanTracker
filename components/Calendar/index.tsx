@@ -15,7 +15,7 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
   return (
     <>
       {user.imageURL ? <img src={user.imageURL} alt={`${user.username} avatar`} /> : null}
-      <Link href={'https://www.codewars.com/users/' + user.username}>{user.username}</Link>
+      <Link href={'/lookup?username=' + user.username}>{user.username}</Link>
       <ChangeText amount={user.honorChange} />
       <br />
     </>
