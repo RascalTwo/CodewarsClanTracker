@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEventHandler, FormEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
 import { rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
@@ -108,27 +108,58 @@ export default function Leaderboard() {
         });
   }, [users, sortingKey, honorChanges, username]);
 
-  useEffect(() => {
-    setLoading(true);
+  const today = useMemo(() => {
     const today = new Date();
     today.setUTCHours(0);
     today.setUTCMinutes(0);
     today.setUTCSeconds(0);
     today.setUTCMilliseconds(0);
-    fetch(`/api/leaderboard?start=${today.getTime()}&end=${today.getTime()}`)
-      .then(r => r.json())
-      .then(setUsers)
-      .finally(() => setLoading(false));
+    return today;
   }, []);
 
-  const startIndex = (pageNumber - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
+  const getData = useCallback(
+    (start: Date = today, end: Date = today) => {
+      setLoading(true);
+      fetch(`/api/leaderboard?start=${start.getTime()}&end=${end.getTime()}`)
+        .then(r => r.json())
+        .then(setUsers)
+        .finally(() => setLoading(false));
+    },
+    [today],
+  );
 
-  const pagedUsers = useMemo(() => showingUsers.slice(startIndex, endIndex), [showingUsers, startIndex, endIndex]);
+  const getInputDates: () => [Date, Date] = useCallback(() => {
+    if (!form.current) return [today, today]
+    const start = form.current!.elements[1] as HTMLInputElement;
+    const end = form.current!.elements[2] as HTMLInputElement;
+    if (!start.value) start.value = end.value;
+    if (!end.value) end.value = start.value;
+    if (!start.value) start.value = end.value = dateToYYYYMMDD(today);
+    console.log(start.value, end.value);
+
+    return [new Date(start.value), new Date(end.value)];
+  }, [today]);
+
+  useEffect(() => {
+    getData(...getInputDates());
+  }, [getData, getInputDates]);
+
+  const pagedUsers = useMemo(() => {
+    const startIndex = (pageNumber - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return showingUsers.slice(startIndex, endIndex);
+  }, [pageNumber, rowsPerPage, showingUsers]);
 
   useEffect(() => {
     if (!pagedUsers.length && pageNumber > 1) setPageNumber(pageNumber - 1);
   }, [pagedUsers, pageNumber]);
+
+  const defaultDateValue = useMemo(() => dateToYYYYMMDD(today), [today]);
+
+  const setInputDates = useCallback((start: Date, end: Date) => {
+    (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(start);
+    (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(end);
+  }, []);
 
   return (
     <>
@@ -136,105 +167,79 @@ export default function Leaderboard() {
       <form
         style={{ float: 'left' }}
         ref={form}
-        onSubmit={e => {
-          e.preventDefault();
-          let startDate = (e.currentTarget.elements[1] as HTMLInputElement).value;
-
-          let endDate = (e.currentTarget.elements[2] as HTMLInputElement).value;
-
-          if (!startDate) startDate = endDate;
-          //const sd = localYYYYMMDDToDate(startDate);
-          //const ed = localYYYYMMDDToDate(endDate);
-          const sd = new Date(startDate);
-          const ed = new Date(endDate);
-
-          fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
-            .then(r => r.json())
-            .then(data => {
-              setUsers(data);
-            });
-        }}
+        onSubmit={
+          useCallback(
+            e => {
+              e.preventDefault();
+              getData(...getInputDates());
+            },
+            [getInputDates, getData],
+          ) as FormEventHandler
+        }
       >
         <fieldset className={styles.fieldset} disabled={loading}>
           <legend>Comparison Dates</legend>
           <label htmlFor="startDate">Start</label>
-          <input id="startDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
+          <input id="startDate" type="date" defaultValue={defaultDateValue}></input>
           <label htmlFor="endDate">End</label>
-          <input id="endDate" type="date" defaultValue={dateToYYYYMMDD(new Date())}></input>
+          <input id="endDate" type="date" defaultValue={defaultDateValue}></input>
           <button type="submit">Fetch</button>
 
           <button
             disabled={loading}
-            onClick={() => {
-              let startDate = (form.current!.elements[1] as HTMLInputElement).value;
-              let endDate = (form.current!.elements[2] as HTMLInputElement).value;
-              if (!startDate) startDate = endDate;
-              //const sd = localYYYYMMDDToDate(startDate);
-              //const ed = localYYYYMMDDToDate(endDate);
-              const sd = new Date(startDate);
-              const ed = new Date(endDate);
-
-              const diff = ed.getTime() - sd.getTime();
+            onClick={useCallback(() => {
+              const [start, end] = getInputDates();
+              const diff = end.getTime() - start.getTime();
               if (!diff) {
-                sd.setTime(sd.getTime() - 86400000);
-                ed.setTime(sd.getTime());
+                start.setTime(start.getTime() - 86400000);
+                end.setTime(start.getTime());
               } else {
-                const temp = sd.getTime();
-                sd.setTime(sd.getTime() - diff);
-                ed.setTime(temp);
+                const temp = start.getTime();
+                start.setTime(start.getTime() - diff);
+                end.setTime(temp);
               }
 
-              (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(sd);
-              (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(ed);
-              fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
-                .then(r => r.json())
-                .then(data => {
-                  setUsers(data);
-                });
-            }}
+              setInputDates(start, end);
+
+              return getData(start, end);
+            }, [getData, getInputDates, setInputDates])}
           >
             Previous
           </button>
           <button
             disabled={loading}
-            onClick={() => {
-              let startDate = (form.current!.elements[1] as HTMLInputElement).value;
-              let endDate = (form.current!.elements[2] as HTMLInputElement).value;
-              if (!startDate) startDate = endDate;
-              //const sd = localYYYYMMDDToDate(startDate);
-              //const ed = localYYYYMMDDToDate(endDate);
-              const sd = new Date(startDate);
-              const ed = new Date(endDate);
+            onClick={useCallback(() => {
+              const [start, end] = getInputDates();
 
-              const diff = ed.getTime() - sd.getTime();
-
+              const diff = end.getTime() - start.getTime();
               if (!diff) {
-                sd.setTime(ed.getTime() + 86400000);
-                ed.setTime(sd.getTime());
+                start.setTime(end.getTime() + 86400000);
+                end.setTime(start.getTime());
               } else {
-                const temp = ed.getTime();
-                ed.setTime(ed.getTime() + diff);
-                sd.setTime(temp);
+                const temp = end.getTime();
+                end.setTime(end.getTime() + diff);
+                start.setTime(temp);
               }
 
-              (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(sd);
-              (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(ed);
-              fetch(`/api/leaderboard?start=${sd.getTime()}&end=${ed.getTime()}`)
-                .then(r => r.json())
-                .then(data => {
-                  setUsers(data);
-                });
-            }}
+              setInputDates(start, end);
+
+              return getData(start, end);
+            }, [getData, getInputDates, setInputDates])}
           >
             Next
           </button>
-          <label htmlFor="sortingBy">Sort By</label>
 
+          <label htmlFor="sortingBy">Sort By</label>
           <select
             id="sortingBy"
             disabled={loading}
             value={sortingKey}
-            onChange={e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange')}
+            onChange={
+              useCallback(
+                e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange'),
+                [],
+              ) as ChangeEventHandler<HTMLSelectElement>
+            }
           >
             <option value="honor">Honor</option>
             <option value="honorChange">Honor Change</option>
@@ -274,16 +279,20 @@ export default function Leaderboard() {
         </thead>
         <tbody>
           {pagedUsers.map(curr => {
-            const startI = users.start.findIndex(u => u.username === curr.username);
-            const pos = users.end.findIndex(u => u.username === curr.username);
-            const change = startI - pos;
+            const startIndex = users.start.findIndex(u => u.username === curr.username);
+            const currentIndex = users.end.findIndex(u => u.username === curr.username);
+            const indexChange = startIndex - currentIndex;
             const honorChange = honorChanges.find(u => u.username === curr.username)?.honorChange || 0;
             const rank = RANK_STYLES.find(rank => rank.rank === rankNameToNumber(curr.rank))!;
-            if (curr.username === undefined) console.log(curr);
             return (
               <tr key={curr.username}>
                 <td>
-                  {pos} <ChangeText amount={startI !== -1 ? change : 0}></ChangeText>
+                  {currentIndex}{' '}
+                  {startIndex === -1 ? (
+                    <sup title="User has no data available on the first date" className={styles.questionMark}>?</sup>
+                  ) : (
+                    <ChangeText amount={indexChange}></ChangeText>
+                  )}
                 </td>
                 <td>
                   <RankBadge {...rank} score={0} />

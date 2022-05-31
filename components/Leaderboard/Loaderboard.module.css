@@ -38,3 +38,8 @@
 .table tr:nth-child(10n+1) td {
   padding-top: 0.75rem;
 }
+
+.questionMark {
+	color: gray;
+	font-size: 0.75rem;
+}
