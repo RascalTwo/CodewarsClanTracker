@@ -250,8 +250,7 @@ export default function Hall() {
         {usernameInput}
         <h1>Hall of Fame</h1>
         <p>
-          Here is listed all those that achieved greatness, being in the top ten for some time period wither as wth the
-          most honor, or gaining the most honor!
+          Here is listed all those that have achieved greatness, being in the top ten for a period of time - either with the most honor, or having gained the most honor!
         </p>
         <LoadingIndicator loading={loading} />
         <fieldset style={{ width: 'max-content', display: 'flex', flexDirection: 'column', float: 'left' }}>

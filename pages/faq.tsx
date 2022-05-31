@@ -52,21 +52,36 @@ export default function FAQ() {
           <summary>How can I validate past data accuracy?</summary>
 
           <p>
-            Unfortunately there is no way to do this simply, as the data is not being preserved by anything aside from this application. The only way to validate the data accuracy is to run your own copy of the downloading scripts yourself, which of course only works for future and not past data.
+            Unfortunately there is no way to do this simply, as the data is not being preserved by anything aside from
+            this application. The only way to validate the data accuracy is to run your own copy of the downloading
+            scripts yourself, which of course only works for future and not past data.
           </p>
         </details>
         <details>
           <summary>Can I see the data?</summary>
 
           <p>
-            Yes you can! All the original data is downloadable via a <Link href="/api/download"><a download="data.zip">.ZIP file</a></Link>
+            Yes you can! All the original data is downloadable via a{' '}
+            <Link href="/api/download">
+              <a download="data.zip">.ZIP file</a>
+            </Link>
           </p>
         </details>
         <details>
           <summary>What do the diamonds and ribbens mean?</summary>
 
           <p>
-            Diamonds are awarded for being the top of a leaderboard, while ribbens are gained for being in the top ten of a leaderboard. The colors reflect the rarity, Gold bring the rarest for Monthly leaderboards, Silver for Weekly leaderboards, and finally Bronze for Daily leaderboards!
+            Diamonds are awarded for being the top of a leaderboard, while ribbens are gained for being in the top ten
+            of a leaderboard. The colors reflect the rarity, Gold bring the rarest for Monthly leaderboards, Silver for
+            Weekly leaderboards, and finally Bronze for Daily leaderboards!
+          </p>
+        </details>
+        <details>
+          <summary>Why can&apos;t my username be looked up?</summary>
+
+          <p>
+            If a user cannot be looked up, it&apos;s possible the user has deleted their account or updated their
+            username
           </p>
         </details>
       </main>
