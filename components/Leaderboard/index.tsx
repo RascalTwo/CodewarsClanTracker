@@ -85,7 +85,9 @@ export default function Leaderboard() {
 
   const form = useRef<HTMLFormElement>(null);
 
-  const [sortingKey, setSortingKey] = useState<'honor' | 'honorChange'>('honor');
+  const [sortingKey, setSortingKey] = useState<'honor' | 'change'>(
+    (router.query.sortBy as 'honor' | 'change') || 'honor',
+  );
   const showingUsers = useMemo(() => {
     const filtered = users.end.filter(u => (u.username || '').toLowerCase().includes(username.toLowerCase()));
     return sortingKey === 'honor'
@@ -118,8 +120,8 @@ export default function Leaderboard() {
   );
 
   const [defaultStart, defaultEnd] = useMemo(() => {
-    let start = new Date(router.query.start as string || '');
-    let end = new Date(router.query.end as string || '');
+    let start = new Date((router.query.start as string) || '');
+    let end = new Date((router.query.end as string) || '');
     if (isNaN(start.getTime())) start = end;
     if (isNaN(end.getTime())) end = start;
     if (isNaN(start.getTime())) start = end = today;
@@ -135,7 +137,7 @@ export default function Leaderboard() {
     if (!end.value) end.value = start.value;
     if (!start.value) {
       start.value = defaultStart;
-      end.value = defaultEnd
+      end.value = defaultEnd;
     }
 
     return [new Date(start.value), new Date(end.value)];
@@ -235,7 +237,7 @@ export default function Leaderboard() {
             value={sortingKey}
             onChange={
               useCallback(
-                e => setSortingKey(e.currentTarget.value as 'honor' | 'honorChange'),
+                e => setSortingKey(e.currentTarget.value as 'honor' | 'change'),
                 [],
               ) as ChangeEventHandler<HTMLSelectElement>
             }
@@ -286,7 +288,7 @@ export default function Leaderboard() {
             return (
               <tr key={curr.username}>
                 <td>
-                  {currentIndex}{' '}
+                  {currentIndex + 1}{' '}
                   {startIndex === -1 ? (
                     <sup title="User has no data available on the first date" className={styles.questionMark}>
                       ?

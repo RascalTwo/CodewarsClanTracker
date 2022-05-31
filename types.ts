@@ -31,6 +31,7 @@ export interface UserStats {
 export interface PublicScrapedUser extends UserStats, ProgressStats {
   profileImageURL: string;
   username: string;
+  achievements: { period: 'days' | 'weeks' | 'months'; type: 'honor' | 'change'; placedIndex: number }[];
 }
 
 export interface FailureResponse {

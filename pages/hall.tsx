@@ -1,10 +1,11 @@
 import Head from 'next/head';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import ChangeText from '../components/ChangeText';
 import Header from '../components/Header';
 import LoadingIndicator from '../components/LoadingIndicator';
-import { getWeekNumber } from '../shared';
+import { dateToYYYYMMDD, getWeekNumber } from '../shared';
 
 interface HonorUser {
   username: string;
@@ -34,29 +35,35 @@ function Fame({ type, start, end, board, boardPreference: showingBoard }: FamePr
 
   const startStr =
     type === 'days'
-      ? start.toDateString()
+      ? dateToYYYYMMDD(start)
       : type === 'weeks'
-      ? start.toDateString()
-      : start.toLocaleDateString(undefined, { month: 'long' });
+      ? dateToYYYYMMDD(start)
+      : dateToYYYYMMDD(start);
   const endStr = end
     ? type === 'days'
-      ? end!.toDateString()
+      ? dateToYYYYMMDD(end!)
       : type === 'weeks'
-      ? end!.toDateString()
-      : end!.toLocaleDateString(undefined, { month: 'long' })
+      ? dateToYYYYMMDD(end!)
+      : dateToYYYYMMDD(end!)
     : 'now';
   const msg =
     showingBoard === 'honor'
       ? `the most honor, with ${board[showingBoard][0].honor}`
       : `gained the most honor, gaining ${board[showingBoard][0].honorChange}`;
 
-  const prettyType = useMemo(() => type[0].toUpperCase() + type.slice(1), [type])
+  const prettyType = useMemo(() => type[0].toUpperCase() + type.slice(1), [type]);
 
   return (
     <li className="fame" data-type={type}>
-      <span className="tag" aria-label={prettyType} title={prettyType}>{type[0].toUpperCase()}</span>
+      <span className="tag" aria-label={prettyType} title={prettyType}>
+        {type[0].toUpperCase()}
+      </span>
       <h3>
-        {startStr} -&gt; {endStr}
+        <Link href={`/leaderboard?start=${dateToYYYYMMDD(start)}&end=${dateToYYYYMMDD(end || new Date())}&sortBy=${showingBoard}`}>
+          <a>
+            {startStr} -&gt; {endStr}
+          </a>
+        </Link>
       </h3>
       {/*end ? (
         <span>
@@ -67,7 +74,7 @@ function Fame({ type, start, end, board, boardPreference: showingBoard }: FamePr
           From {startStr} to now, {board[showingBoard][0].username} has {msg}
         </span>
       )*/}
-      <hr/>
+      <hr />
       <table>
         <thead>
           <tr>
@@ -85,23 +92,35 @@ function Fame({ type, start, end, board, boardPreference: showingBoard }: FamePr
           </tr>
         </thead>
         <tbody>
-          {board[showingBoard].slice(0, 3).map((u, i) => (
-            <tr key={i}>
-              {showingBoard === 'honor' ? (
-                <>
-                  <td>#{i + 1}</td>
-                  <td>{u.username}</td>
-                </>
-              ) : (
-                <>
-                  <td>{u.username}</td>
-                  <td>
-                    <ChangeText amount={u.honorChange} />
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
+          {board[showingBoard].slice(0, 3).map((u, i) => {
+            const color = type === 'days' ? 'bronze' : type === 'weeks' ? 'silver' : 'gold';
+            const userCell = i ? (
+              <td>{u.username}</td>
+            ) : (
+              <td>
+                <img alt="" src={`/${color}-diamond.webp`} className="achievement" />
+                {u.username}
+                <img alt="" src={`/${color}-diamond.webp`} className="achievement" />
+              </td>
+            );
+            return (
+              <tr key={i}>
+                {showingBoard === 'honor' ? (
+                  <>
+                    <td>#{i + 1}</td>
+                    {userCell}
+                  </>
+                ) : (
+                  <>
+                    {userCell}
+                    <td>
+                      <ChangeText amount={u.honorChange} />
+                    </td>
+                  </>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </li>
@@ -207,14 +226,14 @@ export default function Hall() {
       </Head>
 
       <Header />
-      <main>
+      <main style={{ textAlign: 'center' }}>
         <h1>Hall of Fame</h1>
         <p>
           Here is listed all those that achieved greatness, being in the top ten for some time period wither as wth the
           most honor, or gaining the most honor!
         </p>
         <LoadingIndicator loading={loading} />
-        <fieldset style={{ width: 'max-content', display: 'flex', flexDirection: 'column' }}>
+        <fieldset style={{ width: 'max-content', display: 'flex', flexDirection: 'column', float: 'left' }}>
           <legend>Periods</legend>
           <label>
             Days{' '}
@@ -244,7 +263,7 @@ export default function Hall() {
           </label>
         </fieldset>
 
-        <fieldset>
+        <fieldset style={{ width: 'max-content', display: 'flex', flexDirection: 'column', float: 'right' }}>
           <legend>Sorting</legend>
           <label>
             Highest Honor{' '}
@@ -268,24 +287,26 @@ export default function Hall() {
           </label>
         </fieldset>
 
-        <h2>Active</h2>
+        <div style={{ clear: 'both' }}>
+          <h2>Active</h2>
 
-        <ul>
-          {activeFames
-            .filter(fame => showing[fame.type])
-            .map(fame => (
-              <Fame key={fame.type + fame.start.getTime()} {...fame} boardPreference={boardPreference} />
-            ))}
-        </ul>
-        <h2>Inactive</h2>
+          <ul>
+            {activeFames
+              .filter(fame => showing[fame.type])
+              .map(fame => (
+                <Fame key={fame.type + fame.start.getTime()} {...fame} boardPreference={boardPreference} />
+              ))}
+          </ul>
+          <h2>Finished</h2>
 
-        <ul>
-          {inactiveFames
-            .filter(fame => showing[fame.type])
-            .map(fame => (
-              <Fame key={fame.type + fame.start.getTime()} {...fame} boardPreference={boardPreference} />
-            ))}
-        </ul>
+          <ul>
+            {inactiveFames
+              .filter(fame => showing[fame.type])
+              .map(fame => (
+                <Fame key={fame.type + fame.start.getTime()} {...fame} boardPreference={boardPreference} />
+              ))}
+          </ul>
+        </div>
       </main>
     </>
   );
