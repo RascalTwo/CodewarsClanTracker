@@ -13,12 +13,13 @@ export default function Countdown({ to }: { to: Date }) {
     return () => clearInterval(interval);
   }, []);
 
+  const days = useMemo(() => Math.floor(secondsRemaining / 86400), [secondsRemaining])
   const hour = useMemo(() => Math.floor(secondsRemaining / 3600) % 24, [secondsRemaining]);
   const minutes = useMemo(() => Math.floor(secondsRemaining / 60) % 60, [secondsRemaining]);
   const seconds = useMemo(() => secondsRemaining % 60, [secondsRemaining]);
   return (
     <time dateTime={to.toISOString()}>
-      {hour.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
+      {days.toString().padStart(2, '0')}:{hour.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
     </time>
   );
 }

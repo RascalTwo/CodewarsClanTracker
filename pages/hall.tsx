@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import ChangeText from '../components/ChangeText';
+import Countdown from '../components/Countdown';
 import Header from '../components/Header';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { useUsernameInput } from '../hooks';
@@ -41,7 +42,7 @@ function Fame({ type, start, end, board, boardPreference: showingBoard, searchin
       : type === 'weeks'
       ? dateToYYYYMMDD(end!)
       : dateToYYYYMMDD(end!)
-    : 'now';
+    : '';
   const msg =
     showingBoard === 'honor'
       ? `the most honor, with ${board[showingBoard][0].honor}`
@@ -72,7 +73,21 @@ function Fame({ type, start, end, board, boardPreference: showingBoard, searchin
           )}&sortBy=${showingBoard}`}
         >
           <a>
-            {startStr} -&gt; {endStr}
+            {startStr} -&gt;{' '}
+            {endStr ? (
+              endStr
+            ) : (
+              <Countdown
+                to={(() => {
+                  const shouldEnd = new Date(start);
+                  if (type === 'days') shouldEnd.setUTCDate(shouldEnd.getUTCDate() + 1);
+                  else if (type === 'weeks') shouldEnd.setUTCDate(shouldEnd.getUTCDate() + 6);
+                  else if (type === 'months') shouldEnd.setUTCMonth(shouldEnd.getUTCMonth() + 1);
+                  console.log(shouldEnd);
+                  return shouldEnd;
+                })()}
+              />
+            )}
           </a>
         </Link>
       </h3>
@@ -250,7 +265,8 @@ export default function Hall() {
         {usernameInput}
         <h1>Hall of Fame</h1>
         <p>
-          Here is listed all those that have achieved greatness, being in the top ten for a period of time - either with the most honor, or having gained the most honor!
+          Here is listed all those that have achieved greatness, being in the top ten for a period of time - either with
+          the most honor, or having gained the most honor!
         </p>
         <LoadingIndicator loading={loading} />
         <fieldset style={{ width: 'max-content', display: 'flex', flexDirection: 'column', float: 'left' }}>
