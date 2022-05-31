@@ -6,7 +6,7 @@ export default function LookupPage() {
   return (
     <>
       <Head>
-        <title>#100Devs Codewars User Lookup</title>
+        <title>#100Devs Codewars Lookup</title>
       </Head>
 
       <Header />

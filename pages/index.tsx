@@ -7,7 +7,7 @@ export default function HomePage({ start }: { start: number }) {
   return (
     <>
       <Head>
-        <title>#100Devs Codewars Leaderboard</title>
+        <title>#100Devs Codewars Calendar</title>
       </Head>
 
       <Header />

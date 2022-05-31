@@ -6,7 +6,7 @@ export default function LeaderboardPage() {
   return (
     <>
       <Head>
-        <title>#100Devs Codewars User Leaderboard</title>
+        <title>#100Devs Codewars Leaderboard</title>
       </Head>
 
       <Header />
