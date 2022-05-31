@@ -69,7 +69,7 @@ const localYYYYMMDDToDate = (yyyymmdd: string) => {
 
 
 export default function Leaderboard() {
-  const [username, setUsername, usernameInput] = useUsernameInput();
+  const [username, setUsername, usernameInput] = useUsernameInput('Filter by Username');
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
 
   const [loading, setLoading] = useState(false);
