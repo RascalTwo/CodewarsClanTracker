@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
-import { dateToYYYYMMDD } from '../../shared';
+import { dateToYYYYMMDD, getWeekNumber } from '../../shared';
 import ChangeText from '../ChangeText';
 import LoadingIndicator from '../LoadingIndicator';
 
@@ -20,12 +20,6 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
       <br />
     </>
   );
-};
-
-const getWeekNumber = (date: Date) => {
-  const oneJan = new Date(date.getFullYear(), 0, 1);
-  const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
-  return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
 };
 
 export default function Calendar() {
@@ -66,7 +60,7 @@ export default function Calendar() {
     current.setUTCDate(current.getUTCDate() - current.getUTCDay());
 
     let stop = new Date(Date.now() + 86400000);
-    if (stop.getUTCDay() !== 6) stop.setDate(stop.getUTCDate() + 6 - stop.getUTCDay());
+    if (stop.getUTCDay() !== 6) stop.setUTCDate(stop.getUTCDate() + 6 - stop.getUTCDay());
     while (current.toDateString() !== stop.toDateString()) {
       rows.push(new Date(current.getTime()));
       if (current.getUTCDay() === 0) rows.push(new Date(current.getTime()));

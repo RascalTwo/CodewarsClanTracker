@@ -219,7 +219,7 @@ interface HonorUser {
   honor: number;
   honorChange: number;
 }
-type Top3 = HonorUser[];
+export type Top3 = HonorUser[];
 
 interface UserClanInfo {
   username: string;
@@ -242,7 +242,7 @@ const statsToUserMap = async (time: number): Promise<Record<string, UserClanInfo
   return userMap;
 };
 
-const flattenDate = (input: any) => {
+export const flattenDate = (input: any) => {
   const date = new Date(input);
   date.setUTCHours(0);
   date.setUTCMinutes(0);
@@ -251,17 +251,20 @@ const flattenDate = (input: any) => {
   return date;
 };
 
-const getUsersWithHonorChanges = async (start: number, end: number, times: number[]) => {
+export const getAllUsersWithHonorChanges = async (start: number, end: number, times: number[]) => {
   const before = await statsToUserMap(getNearest(start, times));
   const after = await statsToUserMap(getNearest(end, times));
   return Object.values(after)
     .filter(user => before[user.username]?.honor && after[user.username]?.honor)
     .map(user => ({ ...user, honorChange: after[user.username].honor - before[user.username].honor }))
-    .filter(u => u.honorChange)
     .sort((a, b) => b.honorChange - a.honorChange);
 };
 
-const trimUser = ({ username, honor, honorChange }: any) => ({ username, honor, honorChange });
+const getUsersWithHonorChanges = (start: number, end: number, times: number[]) => {
+  return getAllUsersWithHonorChanges(start, end, times).then(users => users.filter(u => u.honorChange));
+};
+
+export const trimUser = ({ username, honor, honorChange }: any) => ({ username, honor, honorChange });
 
 export async function generateNewCalendarData(times: number[]) {
   const end = times.at(-1)!;

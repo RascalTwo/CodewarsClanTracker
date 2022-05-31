@@ -21,6 +21,9 @@ export default function Header() {
             <Link href="/leaderboard">Leaderboard</Link>
           </li>
           <li>
+            <Link href="/hall">Hall of Fame</Link>
+          </li>
+          <li>
             <Link href="/lookup">Lookup</Link>
           </li>
           <li>

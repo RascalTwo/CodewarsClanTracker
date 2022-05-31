@@ -182,3 +182,59 @@ footer {
     transform: rotate(360deg);
   }
 }
+
+.fame {
+  position: relative;
+  width: max-content;
+  text-align: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-ui-section);
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  border: 1px solid var(--type-color);
+}
+
+.fame[data-type="days"] {
+  --type-color: #CD7F32;
+}
+
+.fame[data-type="weeks"] {
+  --type-color: silver;
+}
+
+.fame[data-type="months"] {
+  --type-color: gold;
+}
+
+.fame table {
+  margin: auto;
+  border-collapse: collapse;
+}
+
+.fame td {
+  padding: .25rem;
+}
+
+.fame .tag {
+  background-color: var(--type-color);
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: .25rem;
+
+  border-top-left-radius: 8px;
+  color: black;
+}
+
+tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+h3 {
+  margin: 0;
+}
+
+h2 {
+  text-align: center;
+}
