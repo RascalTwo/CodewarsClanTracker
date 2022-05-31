@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
+import { dateToYYYYMMDD } from '../../shared';
 import ChangeText from '../ChangeText';
 import LoadingIndicator from '../LoadingIndicator';
 
@@ -20,6 +21,13 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
     </>
   );
 };
+
+const getWeekNumber = (date: Date) => {
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+  return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
+};
+
 export default function Calendar() {
   const [loading, setLoading] = useState(true);
   const [username, setUsername, usernameInput] = useUsernameInput('Filter by Username');
@@ -112,7 +120,8 @@ export default function Calendar() {
         {rows.map((cell, i) => {
           const isWeek = i % 8 === 0;
           const users = data[isWeek ? 'weeks' : 'days'][cell.getTime()] || [];
-          const num = isWeek ? cell.getUTCDate() + ' - ' + (cell.getUTCDate() + 6) : cell.getUTCDate();
+          const num = isWeek ? '#' + getWeekNumber(cell) : cell.getUTCDate();
+          const isMonth = num === 1 || i === 1;
           const userz = username
             ? users
                 .map((u, i) => [u, i] as [HonorUser, number])
@@ -134,11 +143,38 @@ export default function Calendar() {
                   <MiniUser key={user.username} {...user} imageURL={!i ? profileImageURLs[user.username] : undefined} />
                 </React.Fragment>
               ));
+
+          const startDate = (() => {
+            if (isMonth) {
+              const firstOfMonth = new Date(cell);
+              firstOfMonth.setUTCDate(1);
+              return firstOfMonth;
+            }
+            return cell;
+          })();
+
+          const endDate = (() => {
+            if (isWeek) {
+              const nextWeek = new Date(cell);
+              nextWeek.setUTCDate(nextWeek.getUTCDate() + 6);
+              return nextWeek;
+            }
+            if (isMonth) {
+              const nextMonth = new Date(cell);
+              nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1);
+              nextMonth.setUTCDate(1);
+              return nextMonth;
+            }
+            return cell;
+          })();
+
           return (
             <div key={i}>
-              <span>
-                {isWeek ? num : num === 1 ? cell.toLocaleDateString(undefined, { month: 'short' }) + ' ' + num : num}
-              </span>
+              <Link href={`/leaderboard?start=${dateToYYYYMMDD(startDate)}&end=${dateToYYYYMMDD(endDate)}`}>
+                <a>
+                  {isWeek ? num : isMonth ? cell.toLocaleDateString(undefined, { month: 'short' }) + ' ' + num : num}
+                </a>
+              </Link>
               <br />
               <br />
               {userz}

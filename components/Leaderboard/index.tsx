@@ -1,7 +1,8 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { ChangeEventHandler, FormEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
-import { rankNameToNumber } from '../../shared';
+import { dateToYYYYMMDD, rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
 import RankBadge from '../RankBadge';
 import styles from './Loaderboard.module.css';
@@ -55,20 +56,8 @@ interface LeaderboardUser {
   honor: number;
 }
 
-function dateToYYYYMMDD(date: Date) {
-  return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date
-    .getUTCDate()
-    .toString()
-    .padStart(2, '0')}`;
-}
-
-const localYYYYMMDDToDate = (yyyymmdd: string) => {
-  const [yyyy, mm, dd] = yyyymmdd.split('-').map(Number);
-  return new Date(yyyy, mm - 1, dd);
-};
-
-
 export default function Leaderboard() {
+  const router = useRouter();
   const [username, setUsername, usernameInput] = useUsernameInput('Filter by Username');
   const [users, setUsers] = useState<{ start: LeaderboardUser[]; end: LeaderboardUser[] }>({ start: [], end: [] });
 
@@ -128,17 +117,29 @@ export default function Leaderboard() {
     [today],
   );
 
+  const [defaultStart, defaultEnd] = useMemo(() => {
+    let start = new Date(router.query.start as string || '');
+    let end = new Date(router.query.end as string || '');
+    if (isNaN(start.getTime())) start = end;
+    if (isNaN(end.getTime())) end = start;
+    if (isNaN(start.getTime())) start = end = today;
+
+    return [dateToYYYYMMDD(start), dateToYYYYMMDD(end)];
+  }, [router.query.end, router.query.start, today]);
+
   const getInputDates: () => [Date, Date] = useCallback(() => {
-    if (!form.current) return [today, today]
+    if (!form.current) return [today, today];
     const start = form.current!.elements[1] as HTMLInputElement;
     const end = form.current!.elements[2] as HTMLInputElement;
     if (!start.value) start.value = end.value;
     if (!end.value) end.value = start.value;
-    if (!start.value) start.value = end.value = dateToYYYYMMDD(today);
-    console.log(start.value, end.value);
+    if (!start.value) {
+      start.value = defaultStart;
+      end.value = defaultEnd
+    }
 
     return [new Date(start.value), new Date(end.value)];
-  }, [today]);
+  }, [defaultEnd, defaultStart, today]);
 
   useEffect(() => {
     getData(...getInputDates());
@@ -153,8 +154,6 @@ export default function Leaderboard() {
   useEffect(() => {
     if (!pagedUsers.length && pageNumber > 1) setPageNumber(pageNumber - 1);
   }, [pagedUsers, pageNumber]);
-
-  const defaultDateValue = useMemo(() => dateToYYYYMMDD(today), [today]);
 
   const setInputDates = useCallback((start: Date, end: Date) => {
     (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(start);
@@ -180,9 +179,9 @@ export default function Leaderboard() {
         <fieldset className={styles.fieldset} disabled={loading}>
           <legend>Comparison Dates</legend>
           <label htmlFor="startDate">Start</label>
-          <input id="startDate" type="date" defaultValue={defaultDateValue}></input>
+          <input id="startDate" type="date" defaultValue={defaultStart}></input>
           <label htmlFor="endDate">End</label>
-          <input id="endDate" type="date" defaultValue={defaultDateValue}></input>
+          <input id="endDate" type="date" defaultValue={defaultEnd}></input>
           <button type="submit">Fetch</button>
 
           <button
@@ -289,7 +288,9 @@ export default function Leaderboard() {
                 <td>
                   {currentIndex}{' '}
                   {startIndex === -1 ? (
-                    <sup title="User has no data available on the first date" className={styles.questionMark}>?</sup>
+                    <sup title="User has no data available on the first date" className={styles.questionMark}>
+                      ?
+                    </sup>
                   ) : (
                     <ChangeText amount={indexChange}></ChangeText>
                   )}
