@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import childProcess from 'child_process';
-import util from 'util';
 
-import { generateNewCalendarData, getDailyClanTimes } from './calendar';
+import { generateNewCalendarData, getDailyClanTimes } from '../../helpers';
 
 const { COMMAND_DOWNLOAD_NEW_CLAN_STATS } = process.env;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

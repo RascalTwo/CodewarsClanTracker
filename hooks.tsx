@@ -17,6 +17,13 @@ function useDebounce<T extends {}>(value: T, delay: number) {
 export function useUsernameInput(
   labelText: string = 'Username',
 ): [string, Dispatch<SetStateAction<string>>, ReactElement] {
+  const [autocomplete, setAutocomplete] = useState([]);
+  useEffect(() => {
+    fetch('/api/userlist')
+      .then(r => r.json())
+      .then(setAutocomplete);
+  }, []);
+
   const router = useRouter();
   useEffect(() => {
     if (typeof router.query.username === 'string') setUsername(router.query.username);
@@ -41,11 +48,16 @@ export function useUsernameInput(
       () => (
         <div className="usernameInput">
           <label htmlFor="username-input">{labelText}</label>
-          <input id="username-input" value={username} onChange={onChange} />
+          <input id="username-input" list="username-autocomplete" value={username} onChange={onChange} />
+          <datalist id="username-autocomplete">
+            {autocomplete.map(string => (
+              <option key={string}>{string}</option>
+            ))}
+          </datalist>
           <LoadingIndicator loading={username !== debouncedUsername} />
         </div>
       ),
-      [username, onChange, labelText, debouncedUsername],
+      [labelText, username, onChange, autocomplete, debouncedUsername],
     ),
   ];
 }
