@@ -62,6 +62,13 @@ export default function FAQ() {
             Yes you can! All the original data is downloadable via a <Link href="/api/download"><a download="data.zip">.ZIP file</a></Link>
           </p>
         </details>
+        <details>
+          <summary>What do the diamonds and ribbens mean?</summary>
+
+          <p>
+            Diamonds are awarded for being the top of a leaderboard, while ribbens are gained for being in the top ten of a leaderboard. The colors reflect the rarity, Gold bring the rarest for Monthly leaderboards, Silver for Weekly leaderboards, and finally Bronze for Daily leaderboards!
+          </p>
+        </details>
       </main>
     </>
   );
