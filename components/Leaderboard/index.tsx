@@ -243,7 +243,7 @@ export default function Leaderboard() {
             }
           >
             <option value="honor">Honor</option>
-            <option value="honorChange">Honor Change</option>
+            <option value="change">Honor Change</option>
           </select>
         </fieldset>
       </form>
