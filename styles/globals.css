@@ -170,6 +170,8 @@ footer {
 .loadingIndicator {
   animation: rotating 1s linear infinite;
   text-align: center;
+  width: max-content;
+  margin: auto;
 }
 
 @keyframes rotating {
