@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
+import LoadingIndicator from '../LoadingIndicator';
 import RankBadge from '../RankBadge';
 
 interface CodewarsAPIFailure {
@@ -37,12 +38,16 @@ interface CodewarsAPIUser {
 }
 
 export default function UserLookup() {
-  const [username, setUsername, usernameInput] = useUsernameInput();
+  const [username, setUsername, usernameInput] = useUsernameInput('Username to Lookup');
   const [user, setUser] = useState<(CodewarsAPIUser & PublicScrapedUser) | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setUser(null);
+
     if (!username) return;
-    const timeout = setTimeout(async () => {
+    setLoading(true);
+    (async () => {
       const data: CodewarsAPIUser | CodewarsAPIFailure = await fetch(
         'https://www.codewars.com/api/v1/users/' + username,
       ).then(response => response.json());
@@ -54,15 +59,16 @@ export default function UserLookup() {
       if (!myData.success) return alert(myData.message);
 
       setUser({ ...data, ...myData.data });
-    }, 1000);
-
-    return () => clearTimeout(timeout);
+    })()
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [username]);
 
   const inCorrectClan = useMemo(() => user?.clan === '#100Devs - leonnoel.com/twitch', [user]);
   return (
     <>
       {usernameInput}
+      <LoadingIndicator loading={loading} />
       {user ? (
         <table>
           <tbody>

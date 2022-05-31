@@ -166,3 +166,17 @@ footer {
   right: 0;
   z-index: 1;
 }
+
+.loadingIndicator {
+  animation: rotating 1s linear infinite;
+  text-align: center;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

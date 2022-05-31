@@ -2,6 +2,7 @@ import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
 import ChangeText from '../ChangeText';
+import LoadingIndicator from '../LoadingIndicator';
 
 interface HonorUser {
   username: string;
@@ -20,16 +21,19 @@ const MiniUser = (user: HonorUser & { imageURL?: string }) => {
   );
 };
 export default function Calendar() {
-  const [username, setUsername, usernameInput] = useUsernameInput();
+  const [loading, setLoading] = useState(true);
+  const [username, setUsername, usernameInput] = useUsernameInput('Filter by Username');
   const [data, setData] = useState<Record<'days' | 'months' | 'weeks', Record<number, HonorUser[]>>>({
     days: {},
     weeks: {},
     months: {},
   });
   useEffect(() => {
+    setLoading(true);
     fetch('/api/calendar')
       .then(response => response.json())
-      .then(setData);
+      .then(setData)
+      .finally(() => setLoading(false));
   }, []);
   const [profileImageURLs, setProfileImageURLs] = useState<Record<string, string>>({});
   const usernames = useMemo(
@@ -39,9 +43,11 @@ export default function Calendar() {
   useEffect(() => {
     const missing = [...usernames].filter(un => !(un in profileImageURLs));
     if (!missing.length) return;
+    setLoading(true);
     fetch('/api/user-images', { method: 'POST', body: JSON.stringify({ usernames: missing }) })
       .then(response => response.json())
-      .then(newURLs => setProfileImageURLs(curr => ({ ...curr, ...newURLs })));
+      .then(newURLs => setProfileImageURLs(curr => ({ ...curr, ...newURLs })))
+      .finally(() => setLoading(false));
   }, [usernames, profileImageURLs]);
 
   const rows = useMemo(() => {
@@ -79,6 +85,7 @@ export default function Calendar() {
   return (
     <>
       {usernameInput}
+      <LoadingIndicator loading={loading} />
       <div className="calendar">
         <div>Week</div>
         {Object.entries(days).map(([day, users]) => {
