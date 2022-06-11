@@ -4,7 +4,6 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	text-align: center;
-	float: left;
 	margin: 1rem;
 }
 .fieldset button[type="submit"] {
@@ -12,10 +11,6 @@
 }
 .fieldset legend {
 	margin: auto;
-}
-
-.pagination {
-	float: right;
 }
 
 .pagination input {

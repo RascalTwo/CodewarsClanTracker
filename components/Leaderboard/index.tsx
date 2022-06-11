@@ -1,6 +1,14 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ChangeEventHandler, FormEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChangeEventHandler,
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { LineChart, CartesianGrid, XAxis, YAxis, Line, Tooltip, Legend, Brush } from 'recharts';
 import { useUsernameInput } from '../../hooks';
 import { dateToYYYYMMDD, rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
@@ -56,6 +64,44 @@ interface LeaderboardUser {
   honor: number;
 }
 
+const ActiveDot = (props: any) => {
+  return (
+    <>
+      <circle
+        type="monotone"
+        {...props}
+        className="recharts-dot recharts-line-dot"
+        onMouseOver={() =>
+          props.setShowing((showing: string[]) => (showing.includes(props.name) ? showing : [...showing, props.name]))
+        }
+        onMouseOut={() => props.setShowing((showing: string[]) => showing.filter(s => s !== props.name))}
+      ></circle>
+    </>
+  );
+};
+
+const ShowingLegend = (props: { payload?: any[]; showing: string[]; contentStyle?: CSSProperties; label?: string }) => {
+  const rendering = props.showing.length
+    ? props.payload!.filter(payload => props.showing.includes(payload.name as string))
+    : props.payload!;
+  if (!rendering) return null;
+  return (
+    <div style={{ ...props.contentStyle, padding: '0.5rem', border: '1px solid white' }}>
+      <span>{props.label}</span>
+      <div>
+        {rendering
+          .sort((a, b) => (b.value! as number) - (a.value! as number))
+          .map(payload => (
+            // @ts-ignore
+            <div key={payload.name!} style={{ color: payload.stroke }}>
+              {payload?.name}: {payload.value!}
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+};
+
 export default function Leaderboard() {
   const router = useRouter();
   const [username, setUsername, usernameInput] = useUsernameInput('Filter by Username');
@@ -82,8 +128,6 @@ export default function Leaderboard() {
         .sort((a, b) => b.honorChange - a.honorChange),
     [users],
   );
-
-  const form = useRef<HTMLFormElement>(null);
 
   const [sortingKey, setSortingKey] = useState<'honor' | 'change'>(
     (router.query.sortBy as 'honor' | 'change') || 'honor',
@@ -129,23 +173,33 @@ export default function Leaderboard() {
     return [dateToYYYYMMDD(start), dateToYYYYMMDD(end)];
   }, [router.query.end, router.query.start, today]);
 
+  const [rawStart, setRawStart] = useState(defaultStart);
+  const [rawEnd, setRawEnd] = useState(defaultEnd);
+
   const getInputDates: () => [Date, Date] = useCallback(() => {
-    if (!form.current) return [today, today];
-    const start = form.current!.elements[1] as HTMLInputElement;
-    const end = form.current!.elements[2] as HTMLInputElement;
-    if (!start.value) start.value = end.value;
-    if (!end.value) end.value = start.value;
-    if (!start.value) {
-      start.value = defaultStart;
-      end.value = defaultEnd;
+    let start = rawStart;
+    let end = rawEnd;
+    if (!start && end) {
+      start = end;
+      setRawStart(end);
+    }
+    if (!end && start) {
+      end = start;
+      setRawEnd(start);
+    }
+    if (!start && !end) {
+      start = defaultStart;
+      setRawStart(defaultStart);
+      end = defaultEnd;
+      setRawEnd(defaultEnd);
     }
 
-    return [new Date(start.value), new Date(end.value)];
-  }, [defaultEnd, defaultStart, today]);
+    return [new Date(start), new Date(end)];
+  }, [defaultEnd, defaultStart, rawEnd, rawStart]);
 
   useEffect(() => {
     getData(...getInputDates());
-  }, [getData, getInputDates]);
+  }, [getData, getInputDates, rawStart, rawEnd]);
 
   const pagedUsers = useMemo(() => {
     const startIndex = (pageNumber - 1) * rowsPerPage;
@@ -158,33 +212,68 @@ export default function Leaderboard() {
   }, [pagedUsers, pageNumber]);
 
   const setInputDates = useCallback((start: Date, end: Date) => {
-    (form.current!.elements[1] as HTMLInputElement).value = dateToYYYYMMDD(start);
-    (form.current!.elements[2] as HTMLInputElement).value = dateToYYYYMMDD(end);
+    setRawStart(dateToYYYYMMDD(start));
+    setRawEnd(dateToYYYYMMDD(end));
   }, []);
+
+  const [graphing, setGraphing] = useState(false);
+  const [graphingUsernames, setGraphingUsernames] = useState('');
+  const graphedUsernamesSet = useMemo(() => new Set(graphingUsernames.split(',').filter(Boolean)), [graphingUsernames]);
+  useEffect(() => {
+    if (!graphing) return;
+    if (!graphingUsernames)
+      setGraphingUsernames(
+        pagedUsers
+          .slice(0, 10)
+          .map(user => user.username)
+          .join(','),
+      );
+  }, [graphingUsernames, setGraphingUsernames, graphing, pagedUsers]);
+
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    if (!graphedUsernamesSet) return;
+    fetch('/api/chart', {
+      method: 'POST',
+      body: JSON.stringify({
+        start: new Date(rawStart).getTime(),
+        end: new Date(rawEnd).getTime(),
+        usernames: [...graphedUsernamesSet],
+      }),
+    })
+      .then(r => r.json())
+      .then(setChartData);
+  }, [graphedUsernamesSet, rawStart, rawEnd]);
+
+  const [colors, setColors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    setColors(colors => {
+      let added = false;
+      let newColors = { ...colors };
+      for (const day of chartData) {
+        for (const username in day) {
+          if (username in newColors) continue;
+          newColors[username] = `hsl(${Math.floor(Math.random() * 365)}, 100%, 50%)`;
+          added = true;
+        }
+      }
+      return added ? newColors : colors;
+    });
+  }, [chartData]);
+
+  const [legendUsernames, setLegendUsernames] = useState<string[]>([]);
 
   return (
     <>
       {usernameInput}
-      <form
-        style={{ float: 'left' }}
-        ref={form}
-        onSubmit={
-          useCallback(
-            e => {
-              e.preventDefault();
-              getData(...getInputDates());
-            },
-            [getInputDates, getData],
-          ) as FormEventHandler
-        }
-      >
+      <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
         <fieldset className={styles.fieldset} disabled={loading}>
           <legend>Comparison Dates</legend>
           <label htmlFor="startDate">Start</label>
-          <input id="startDate" type="date" defaultValue={defaultStart}></input>
+          <input id="startDate" type="date" value={rawStart} onChange={e => setRawStart(e.currentTarget.value)}></input>
           <label htmlFor="endDate">End</label>
-          <input id="endDate" type="date" defaultValue={defaultEnd}></input>
-          <button type="submit">Fetch</button>
+          <input id="endDate" type="date" value={rawEnd} onChange={e => setRawEnd(e.currentTarget.value)}></input>
 
           <button
             disabled={loading}
@@ -246,29 +335,81 @@ export default function Leaderboard() {
             <option value="change">Honor Change</option>
           </select>
         </fieldset>
-      </form>
-      <fieldset disabled={loading} className={[styles.fieldset, styles.pagination].join(' ')}>
-        <legend>Pagination</legend>
+        <fieldset className={styles.fieldset} style={{ margin: 'auto' }}>
+          <legend>View</legend>
+          <label htmlFor="graphingCheckbox">Graphing</label>
+          <input
+            id="graphingCheckbox"
+            type="checkbox"
+            checked={graphing}
+            onChange={e => setGraphing(e.currentTarget.checked)}
+          />
 
-        <label htmlFor="rowsPerPage">Rows</label>
-        <input
-          id="rowsPerPage"
-          type="number"
-          value={rowsPerPage}
-          onChange={e => setRowsPerPage(+e.currentTarget.value)}
-        />
+          {graphing ? (
+            <>
+              <label>Graphing Usernames</label>
+              <input value={graphingUsernames} onChange={e => setGraphingUsernames(e.currentTarget.value)} />
+            </>
+          ) : null}
+        </fieldset>
+        <fieldset disabled={loading} className={styles.fieldset}>
+          <legend>Pagination</legend>
 
-        <label htmlFor="pageNumber">Page #</label>
-        <input
-          id="pageNumber"
-          min="1"
-          max={Math.ceil(showingUsers.length / rowsPerPage)}
-          type="number"
-          value={pageNumber}
-          onChange={e => setPageNumber(+e.currentTarget.value)}
-        />
-      </fieldset>
+          <label htmlFor="rowsPerPage">Rows</label>
+          <input
+            id="rowsPerPage"
+            type="number"
+            value={rowsPerPage}
+            onChange={e => setRowsPerPage(+e.currentTarget.value)}
+          />
 
+          <label htmlFor="pageNumber">Page #</label>
+          <input
+            id="pageNumber"
+            min="1"
+            max={Math.ceil(showingUsers.length / rowsPerPage)}
+            type="number"
+            value={pageNumber}
+            onChange={e => setPageNumber(+e.currentTarget.value)}
+          />
+        </fieldset>
+      </div>
+
+      {graphing ? (
+        <LineChart
+          width={window.innerWidth * 0.75}
+          height={window.innerHeight * 0.75}
+          style={{ margin: 'auto' }}
+          data={chartData}
+          onClick={() => setLegendUsernames([])}
+        >
+          <CartesianGrid stroke="#fff" />
+          <XAxis dataKey="name" />
+          <YAxis />
+
+          <Tooltip
+            contentStyle={{ background: 'black', color: 'white' }}
+            content={<ShowingLegend showing={legendUsernames} />}
+          />
+          <Brush
+            tickFormatter={(_, i) => {
+              const date = new Date(rawStart);
+              date.setUTCDate(date.getUTCDate() + i);
+              return dateToYYYYMMDD(date).slice(5);
+            }}
+          />
+          {[...graphedUsernamesSet].map(key => (
+            <Line
+              name={key}
+              key={key}
+              stroke={colors[key]}
+              type="monotone"
+              dataKey={obj => obj[key]?.[sortingKey === 'honor' ? 'honor' : 'honorChange']}
+              activeDot={<ActiveDot name={key} setShowing={setLegendUsernames} />}
+            />
+          ))}
+        </LineChart>
+      ) : null}
       <table className={styles.table}>
         <thead>
           <tr>

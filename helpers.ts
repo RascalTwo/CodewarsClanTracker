@@ -221,7 +221,7 @@ interface HonorUser {
 }
 export type Top3 = HonorUser[];
 
-interface UserClanInfo {
+export interface UserClanInfo {
   username: string;
   honor: number;
   clan: string;
