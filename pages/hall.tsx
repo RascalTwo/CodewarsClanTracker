@@ -81,7 +81,7 @@ function Fame({ type, start, end, board, boardPreference: showingBoard, searchin
                 to={(() => {
                   const shouldEnd = new Date(start);
                   if (type === 'days') shouldEnd.setUTCDate(shouldEnd.getUTCDate() + 1);
-                  else if (type === 'weeks') shouldEnd.setUTCDate(shouldEnd.getUTCDate() + 6);
+                  else if (type === 'weeks') shouldEnd.setUTCDate(shouldEnd.getUTCDate() + 7);
                   else if (type === 'months') shouldEnd.setUTCMonth(shouldEnd.getUTCMonth() + 1);
                   console.log(shouldEnd);
                   return shouldEnd;
