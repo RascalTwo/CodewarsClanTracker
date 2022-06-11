@@ -33,7 +33,7 @@ export function useUsernameInput(
   const debouncedUsername = useDebounce(username, 1000);
 
   useEffect(() => {
-    if (debouncedUsername === router.query.username) return;
+    if (debouncedUsername === router.query.username || !debouncedUsername) return;
     try {
       router.replace({ query: { ...router.query, username: debouncedUsername } });
     } catch (_) {}
