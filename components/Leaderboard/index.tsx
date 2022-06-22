@@ -10,8 +10,9 @@ import {
 } from 'react';
 import { LineChart, CartesianGrid, XAxis, YAxis, Line, Tooltip, Legend, Brush } from 'recharts';
 import { useUsernameInput } from '../../hooks';
-import { dateToYYYYMMDD, rankNameToNumber } from '../../shared';
+import { dateToYYYYMMDD, flattenDate, rankNameToNumber } from '../../shared';
 import ChangeText from '../ChangeText';
+import Countup from '../Countup';
 import RankBadge from '../RankBadge';
 import styles from './Loaderboard.module.css';
 
@@ -157,11 +158,16 @@ export default function Leaderboard() {
       setLoading(true);
       fetch(`/api/leaderboard?start=${start.getTime()}&end=${end.getTime()}`)
         .then(r => r.json())
-        .then(setUsers)
+        .then(({ updated, users }) => {
+          setUsers(users)
+          setLastUpdatedAt(updated);
+        })
         .finally(() => setLoading(false));
     },
     [today],
   );
+
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
   const [defaultStart, defaultEnd] = useMemo(() => {
     let start = new Date((router.query.start as string) || '');
@@ -264,8 +270,46 @@ export default function Leaderboard() {
 
   const [legendUsernames, setLegendUsernames] = useState<string[]>([]);
 
+  const useLiveAPI = useMemo(() => new Date(rawEnd).getTime() >= flattenDate(new Date()).getTime(), [rawEnd]);
+  const [liveFetched, setLiveFetched] = useState(false);
+  useEffect(() => {
+    if (!useLiveAPI || liveFetched || !users.end.length) return;
+    let mounted = true;
+
+    (async () => {
+      if (!mounted) return;
+
+      const response = await fetch(`/api/codewars-clan-members?page=${1}`);
+      const payload: { success: false, reason: string } | {
+        totalPages: number,
+        totalItems: number,
+        data: {
+          id: string,
+          username: string,
+          honor: number,
+          rank: number,
+        }[],
+      } = await response.json();
+      if ('success' in payload) return alert(payload.reason);
+
+      const endUsers = users.end.map(user => {
+        const newUser = payload.data.find(u => u.username === user.username);
+        return newUser ? { ...user, honor: newUser.honor } : user;
+      });
+      if (mounted) {
+        setUsers(({ start: users.start, end: endUsers }));
+        setLiveFetched(true);
+        setLastUpdatedAt(Date.now());
+      }
+    })().catch(console.error)
+    return () => {
+      mounted = false;
+    };
+  }, [liveFetched, setUsers, useLiveAPI, users])
+
   return (
     <>
+      {lastUpdatedAt ? <p style={{ textAlign: 'center' }}>Last updated: <Countup from={new Date(lastUpdatedAt)} /> </p> : null}
       {usernameInput}
       <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
         <fieldset className={styles.fieldset} disabled={loading}>

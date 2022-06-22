@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { flattenDate } from './shared';
 
 const HONOR_FOR_KATAS_BY_RANK: Record<string, number> = {
   '8 kyu': 0,
@@ -240,15 +241,6 @@ const statsToUserMap = async (time: number): Promise<Record<string, UserClanInfo
     userMap[user.username] = user;
   }
   return userMap;
-};
-
-export const flattenDate = (input: any) => {
-  const date = new Date(input);
-  date.setUTCHours(0);
-  date.setUTCMinutes(0);
-  date.setUTCSeconds(0);
-  date.setUTCMilliseconds(0);
-  return date;
 };
 
 export const getAllUsersWithHonorChanges = async (start: number, end: number, times: number[]) => {

@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import cacheData from 'memory-cache';
+import schedule from 'node-schedule';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import path from 'path';
 
@@ -25,13 +26,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const times = filenames.map(filename => +filename.split('.')[0]);
   const startFilename = getNearest(startTime, times);
   const endFilename = getNearest(endTime, times);
+
+  const job = schedule.scheduleJob('next data', '0 */6 * * *', () => undefined);
+  const updated = job.nextInvocation().getTime() - (3600000 * 6);
+  job.cancel();
+
   const payload = {
-    start: JSON.parse(
-      (await fs.promises.readFile(path.join(process.env.DAILY_CLAN_DIRECTORY!, startFilename + '.json'))).toString(),
-    ),
-    end: JSON.parse(
-      (await fs.promises.readFile(path.join(process.env.DAILY_CLAN_DIRECTORY!, endFilename + '.json'))).toString(),
-    ),
+    updated,
+    users: {
+      start: JSON.parse(
+        (await fs.promises.readFile(path.join(process.env.DAILY_CLAN_DIRECTORY!, startFilename + '.json'))).toString(),
+      ),
+      end: JSON.parse(
+        (await fs.promises.readFile(path.join(process.env.DAILY_CLAN_DIRECTORY!, endFilename + '.json'))).toString(),
+      ),
+    },
   };
   cacheData.put(cacheKey, payload, 60000);
   return res.send(payload);

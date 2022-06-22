@@ -1,7 +1,7 @@
 import cacheData from 'memory-cache';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { flattenDate, generateNewHallData, getAllUsersWithHonorChanges, getDailyClanTimes, Top3, trimUser } from '../../helpers';
+import { generateNewHallData, getDailyClanTimes } from '../../helpers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const times = await getDailyClanTimes();
