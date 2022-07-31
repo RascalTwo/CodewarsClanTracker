@@ -4,10 +4,11 @@ import { getAllUsersWithHonorChanges, getDailyClanTimes, Top3, trimUser } from '
 import { dateToYYYYMMDD } from '../../shared';
 
 async function generateChartDay(start: number, end: number, times: number[], usernames: string[]) {
-  const allUsers = (await getAllUsersWithHonorChanges(start, end, times)).filter(user =>
+  const allUsers = (await getAllUsersWithHonorChanges(start, end, times))
+  .sort((a, b) => b.honor - a.honor).map((user, i) => ({ ...user, position: i + 1})).filter(user =>
     usernames.includes(user.username),
   );
-  const trimmed = allUsers.map(({ honor, honorChange, username }) => ({ honor, honorChange, username }));
+  const trimmed = allUsers.map(({ honor, honorChange, username, position }) => ({ honor, honorChange, username, position }));
   const obj: Record<string, any> = {};
   for (const user of trimmed) {
     obj[user.username] = user;

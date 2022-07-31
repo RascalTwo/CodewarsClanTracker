@@ -130,12 +130,12 @@ export default function Leaderboard() {
     [users],
   );
 
-  const [sortingKey, setSortingKey] = useState<'honor' | 'change'>(
-    (router.query.sortBy as 'honor' | 'change') || 'honor',
+  const [sortingKey, setSortingKey] = useState<'honor' | 'change' | 'position'>(
+    (router.query.sortBy as 'honor' | 'change' | 'position') || 'honor',
   );
   const showingUsers = useMemo(() => {
     const filtered = users.end.filter(u => (u.username || '').toLowerCase().includes(username.toLowerCase()));
-    return sortingKey === 'honor'
+    return (sortingKey === 'honor' || sortingKey === 'position')
       ? filtered.sort((a, b) => b.honor - a.honor)
       : filtered.sort((a, b) => {
           const ah = honorChanges.find(u => u.username === a.username)?.honorChange || 0;
@@ -370,13 +370,14 @@ export default function Leaderboard() {
             value={sortingKey}
             onChange={
               useCallback(
-                e => setSortingKey(e.currentTarget.value as 'honor' | 'change'),
+                e => setSortingKey(e.currentTarget.value as 'honor' | 'change' | 'position'),
                 [],
               ) as ChangeEventHandler<HTMLSelectElement>
             }
           >
             <option value="honor">Honor</option>
             <option value="change">Honor Change</option>
+            {graphing ? <option value="position">Position</option> : null}
           </select>
         </fieldset>
         <fieldset className={styles.fieldset} style={{ margin: 'auto' }}>
@@ -429,7 +430,7 @@ export default function Leaderboard() {
         >
           <CartesianGrid stroke="#fff" />
           <XAxis dataKey="name" />
-          <YAxis />
+          <YAxis reversed={sortingKey === 'position'} />
 
           <Tooltip
             contentStyle={{ background: 'black', color: 'white' }}
@@ -448,7 +449,7 @@ export default function Leaderboard() {
               key={key}
               stroke={colors[key]}
               type="monotone"
-              dataKey={obj => obj[key]?.[sortingKey === 'honor' ? 'honor' : 'honorChange']}
+              dataKey={obj => obj[key]?.[sortingKey === 'honor' ? 'honor' : sortingKey === 'position' ? 'position' : 'honorChange']}
               activeDot={<ActiveDot name={key} setShowing={setLegendUsernames} />}
             />
           ))}
