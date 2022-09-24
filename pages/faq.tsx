@@ -30,7 +30,6 @@ export default function FAQ() {
             and back in, etc.
           </p>
         </details>
-        <br />
         <details>
           <summary>How do I know if I&apos;m in the clan?</summary>
 
