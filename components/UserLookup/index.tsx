@@ -230,7 +230,7 @@ export default function UserLookup() {
               </tr>
               <tr>
                 <td>Skills</td>
-                <td>{user.skills.length ? user.skills.join(', ') : 'None'}</td>
+                <td>{user.skills?.length ? user.skills.join(', ') : 'None'}</td>
               </tr>
               <tr>
                 <td>Authored Katas</td>
