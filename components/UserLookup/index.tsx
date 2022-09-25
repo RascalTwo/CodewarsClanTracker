@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useUsernameInput } from '../../hooks';
+import { copyAndMutate, dateToYYYYMMDD } from '../../shared';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
 import LoadingIndicator from '../LoadingIndicator';
 import RankBadge from '../RankBadge';
@@ -35,6 +36,20 @@ interface CodewarsAPIUser {
   codeChallenges: {
     totalAuthored: number;
     totalCompleted: number;
+  };
+}
+
+function getAchievementAttributes(achievement: PublicScrapedUser['achievements'][number]) {
+  const color = achievement.period === 'days' ? 'bronze' : achievement.period === 'weeks' ? 'silver' : 'gold';
+  const type = achievement.placedIndex === 0 ? 'diamond.webp' : 'ribben.png';
+
+  const startStr = dateToYYYYMMDD(new Date(achievement.when));
+  const endStr = dateToYYYYMMDD(copyAndMutate(new Date(achievement.when), achievement.period === 'days' ? date => date.setUTCDate(date.getUTCDate() + 1) : achievement.period === 'weeks' ? date => date.setUTCDate(date.getUTCDate() + 6) : date => date.setUTCMonth(date.getUTCMonth() + 1)));
+  return {
+    src: '/' + color + '-' + type,
+    style: achievement.placedIndex === 0 ? {fontSize: 75 + 'px', flex: 1} : { flex: 1 },
+    alt: `${achievement.placedIndex + 1} place in ${achievement.period} from ${startStr} to ${endStr}`,
+    title: `${achievement.placedIndex + 1} place in ${achievement.period} from ${startStr} to ${endStr}`,
   };
 }
 
@@ -121,49 +136,27 @@ export default function UserLookup() {
             <h2>Achievements</h2>
             <h3 style={{ textAlign: 'center' }}>Highest Honor</h3>
             <div
-              style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', width: '90%', justifyContent: 'center', margin: 'auto', fontSize: 100 + 'px' }}
+              style={{ alignItems: 'center', display: 'flex', width: '75%', overflow: 'scroll', margin: 'auto', fontSize: 100 + 'px' }}
             >
-              {Array.from({ length: highestAchievements.gold.diamonds }, (_, i) => (
-                <img alt="" src="/gold-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: highestAchievements.silver.diamonds }, (_, i) => (
-                <img alt="" src="/silver-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: highestAchievements.bronze.diamonds }, (_, i) => (
-                <img alt="" src="/bronze-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: highestAchievements.gold.ribbens }, (_, i) => (
-                <img alt="" src="/gold-ribben.png" className="achievement" />
-              ))}
-              {Array.from({ length: highestAchievements.silver.ribbens }, (_, i) => (
-                <img alt="" src="/silver-ribben.png" className="achievement" />
-              ))}
-              {Array.from({ length: highestAchievements.bronze.ribbens }, (_, i) => (
-                <img alt="" src="/bronze-ribben.png" className="achievement" />
-              ))}
+              {user?.achievements.filter(a => a.type === 'honor').sort((a, b) => b.when - a.when).map((ach) =>
+                <img
+                  key={ach.type + ach.period + ach.when}
+                  className='achievement'
+                  {...getAchievementAttributes(ach)}
+                />
+              )}
             </div>
             <h3 style={{ textAlign: 'center' }}>Gained Honor</h3>
             <div
-              style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', width: '90%', justifyContent: 'center', margin: 'auto', fontSize: 100 + 'px' }}
+              style={{ alignItems: 'center', display: 'flex', width: '75%', overflow: 'scroll', margin: 'auto', fontSize: 100 + 'px' }}
             >
-              {Array.from({ length: changeAchievements.gold.diamonds }, (_, i) => (
-                <img alt="" src="/gold-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: changeAchievements.silver.diamonds }, (_, i) => (
-                <img alt="" src="/silver-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: changeAchievements.bronze.diamonds }, (_, i) => (
-                <img alt="" src="/bronze-diamond.webp" style={{fontSize: 75 + 'px'}} className="achievement" />
-              ))}
-              {Array.from({ length: changeAchievements.gold.ribbens }, (_, i) => (
-                <img alt="" src="/gold-ribben.png" className="achievement" />
-              ))}
-              {Array.from({ length: changeAchievements.silver.ribbens }, (_, i) => (
-                <img alt="" src="/silver-ribben.png" className="achievement" />
-              ))}
-              {Array.from({ length: changeAchievements.bronze.ribbens }, (_, i) => (
-                <img alt="" src="/bronze-ribben.png" className="achievement" />
-              ))}
+              {user?.achievements.filter(a => a.type === 'change').sort((a, b) => b.when - a.when).map((ach) =>
+                <img
+                  key={ach.type + ach.period + ach.when}
+                  className='achievement'
+                  {...getAchievementAttributes(ach)}
+                />
+              )}
             </div>
           </div>
           <table style={{ margin: 'auto' }}>

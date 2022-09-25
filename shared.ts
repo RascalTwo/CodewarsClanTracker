@@ -29,3 +29,9 @@ export function dateToYYYYMMDD(date: Date) {
     .toString()
     .padStart(2, '0')}`;
 }
+
+export const copyAndMutate = (date: Date, mutate: (date: Date) => void) => {
+  const newDate = new Date(date);
+  mutate(newDate);
+  return newDate;
+};

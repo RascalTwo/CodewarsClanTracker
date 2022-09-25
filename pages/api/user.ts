@@ -12,7 +12,7 @@ import type {
   PublicScrapedUser,
   ProfileKey,
 } from '../../types';
-import { generateNewHallData, getDailyClanTimes } from '../../helpers';
+import { generateNewHallData, getDailyClanTimes, Top3 } from '../../helpers';
 
 const SHORT_MONTHS = Array.from({ length: 12 }, (_, i) =>
   new Date(0, i).toLocaleString(undefined, { month: 'short' }).toLowerCase(),
@@ -157,15 +157,13 @@ export default async function handler(
 
       const achievements = [];
       const hallData = await generateNewHallData(await getDailyClanTimes());
-      // @ts-ignore
-      for (const period in hallData) {
-        // @ts-ignore
+      let period: keyof typeof hallData;
+      for (period in hallData) {
         for (const when in hallData[period]) {
-          // @ts-ignore
-          for (const type in hallData[period][when]) {
-            // @ts-ignore
+          let type: 'honor' | 'change';
+          for (type in hallData[period][when]) {
             const placedIndex = hallData[period][when][type].findIndex(user => user.username === username);
-            if (placedIndex !== -1) achievements.push({ period, type, placedIndex });
+            if (placedIndex !== -1) achievements.push({ period, when: +when, type, placedIndex });
           }
         }
       }

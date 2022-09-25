@@ -7,19 +7,13 @@ import Countdown from '../components/Countdown';
 import Header from '../components/Header';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { useUsernameInput } from '../hooks';
-import { dateToYYYYMMDD, getWeekNumber } from '../shared';
+import { dateToYYYYMMDD, getWeekNumber, copyAndMutate } from '../shared';
 
 interface HonorUser {
   username: string;
   honor: number;
   honorChange: number;
 }
-
-const copyAndMutate = (date: Date, mutate: (date: Date) => void) => {
-  const newDate = new Date(date);
-  mutate(newDate);
-  return newDate;
-};
 
 interface FameData {
   type: TrackingPeriod;
