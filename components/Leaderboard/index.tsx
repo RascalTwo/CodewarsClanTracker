@@ -487,7 +487,7 @@ export default function Leaderboard() {
                   <RankBadge {...rank} score={0} />
                 </td>
                 <td>
-                  <Link href={'https://www.codewars.com/users/' + curr.username}>{curr.username}</Link>
+                  <Link href={'/lookup?username=' + curr.username}>{curr.username}</Link>
                 </td>
                 <td>
                   {curr.honor} <ChangeText amount={honorChange}></ChangeText>
