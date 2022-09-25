@@ -39,6 +39,31 @@ interface CodewarsAPIUser {
   };
 }
 
+interface MinimalKata {
+  id: string;
+  name: string;
+  slug: string;
+  completedLanguages: string[];
+  completedAt: number;
+}
+
+
+async function getCompletedKatas(username: string): Promise<MinimalKata[]> {
+  const completedKatas: MinimalKata[] = [];
+  let totalPages = 1;
+  for (let page = 0; page < totalPages; page++) {
+    const data = await fetch(
+      `https://www.codewars.com/api/v1/users/${username}/code-challenges/completed?page=${page}`,
+    ).then((response: any) => response.json());
+    if (data.success === false) throw new Error(data.reason);
+    totalPages = data.totalPages;
+    completedKatas.push(
+      ...data.data.map((kata: any) => ({ ...kata, completedAt: new Date(kata.completedAt).getTime() })),
+    );
+  }
+  return completedKatas.sort((a, b) => b.completedAt - a.completedAt);
+}
+
 function getAchievementAttributes(achievement: PublicScrapedUser['achievements'][number]) {
   const color = achievement.period === 'days' ? 'bronze' : achievement.period === 'weeks' ? 'silver' : 'gold';
   const type = achievement.placedIndex === 0 ? 'diamond.webp' : 'ribben.png';
@@ -53,10 +78,49 @@ function getAchievementAttributes(achievement: PublicScrapedUser['achievements']
   };
 }
 
+interface Streak {
+  start: Date;
+  end: Date;
+  katas: MinimalKata[];
+}
+
+const flattenDateToDay = (when: number) => new Date(Math.trunc(when / 86400000) * 86400000)
+
 export default function UserLookup() {
   const [username, setUsername, usernameInput] = useUsernameInput('Username to Lookup');
   const [user, setUser] = useState<(CodewarsAPIUser & PublicScrapedUser) | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [completedKatas, setCompletedKatas] = useState<MinimalKata[]>([]);
+  const streaks = useMemo(() => {
+    if (!completedKatas.length) return [];
+    const streaks: Streak[] = [];
+    let currentStreak: Streak = {
+      start: flattenDateToDay(completedKatas[0].completedAt),
+      end: flattenDateToDay(completedKatas[0].completedAt),
+      katas: [completedKatas[0]],
+    }
+    for (let i = 1; i < completedKatas.length; i++) {
+      const currentKata = completedKatas[i];
+      const currentKataDate = flattenDateToDay(currentKata.completedAt);
+      if (currentKataDate.getTime() >= currentStreak.end.getTime() - 86400000) {
+        currentStreak.end = currentKataDate;
+        currentStreak.katas.push(currentKata);
+      } else {
+        streaks.push(currentStreak);
+        currentStreak = {
+          start: currentKataDate,
+          end: currentKataDate,
+          katas: [currentKata],
+        };
+      }
+    }
+    streaks.push(currentStreak)
+    return streaks.map(s => ({
+      ...s,
+      length: Math.ceil((s.start.getTime() - s.end.getTime()) / 86400000) + 1,
+    }))
+  }, [completedKatas]);
 
   useEffect(() => {
     setUser(null);
@@ -77,7 +141,10 @@ export default function UserLookup() {
       setUser({ ...data, ...myData.data });
     })()
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false))
+      .then(async () => {
+        setCompletedKatas(await getCompletedKatas(username));
+      }).catch(console.error);
   }, [username]);
 
   const inCorrectClan = useMemo(() => user?.clan === '#100Devs - leonnoel.com/twitch', [user]);
@@ -254,6 +321,12 @@ export default function UserLookup() {
               ))}
             </tbody>
           </table>
+          <div style={{ textAlign: 'center' }}>
+            <h3>Streaks</h3>
+            <ul>
+              {streaks.map(s => <li key={s.end.getTime()}> {dateToYYYYMMDD(s.end)} -&gt; {dateToYYYYMMDD(s.start)} ({s.katas.length.toString().padStart(3, '0')} katas over {s.length.toString().padStart(3, '0')} days) </li>)}
+            </ul>
+          </div>
         </>
       ) : null}
     </>
