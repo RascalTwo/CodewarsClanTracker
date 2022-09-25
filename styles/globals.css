@@ -247,3 +247,21 @@ h2 {
   height: 1ch;
   padding: 0 .25rem;
 }
+
+#calendar-heatmap {
+  margin: 1rem;
+  padding: 1rem;
+}
+
+#calendar-heatmap * {
+  font-size: 1rem;
+}
+
+.calendar-heatmap-mini .month-name:first-of-type {
+  display: none;
+}
+
+.calendar-heatmap-mini text {
+  fill: white;
+  stroke: white;
+}

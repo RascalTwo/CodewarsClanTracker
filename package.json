@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "calendar-heatmap-mini": "^1.3.0",
     "jsdom": "^19.0.0",
     "jszip": "^3.10.0",
     "memory-cache": "^0.2.0",

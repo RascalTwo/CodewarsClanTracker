@@ -5,6 +5,8 @@ import { copyAndMutate, dateToYYYYMMDD } from '../../shared';
 import type { FailureResponse, PublicScrapedUser, RankInfo, SuccessResponse } from '../../types';
 import LoadingIndicator from '../LoadingIndicator';
 import RankBadge from '../RankBadge';
+// @ts-ignore
+import CalendarHeatMap from 'calendar-heatmap-mini'
 
 interface CodewarsAPIFailure {
   success: false;
@@ -149,49 +151,33 @@ export default function UserLookup() {
 
   const inCorrectClan = useMemo(() => user?.clan === '#100Devs - leonnoel.com/twitch', [user]);
 
-  const achievedCounts = user?.achievements.reduce(
-    (res, ach) => {
-      // @ts-ignore
-      if (res[ach.type][ach.period][ach.placedIndex] === undefined) res[ach.type][ach.period][ach.placedIndex] = 0;
-      // @ts-ignore
-      res[ach.type][ach.period][ach.placedIndex]++;
-      return res;
-    },
-    { honor: { days: {}, weeks: {}, months: {} }, change: { days: {}, weeks: {}, months: {} } },
-  ) || { honor: {}, change: {} };
+  useEffect(() => {
+    if (!completedKatas.length) return
+    const now = Date.now();
+    const chartData: Record<number, number> = {};
+    for (const kata of completedKatas) {
+      const date = flattenDateToDay(kata.completedAt).getTime();
+      // if date is more than a year old, ignore
+      if (now - date > 31536000000) continue;
+      if (!(date in chartData)) chartData[date] = 0;
+      chartData[date]++;
+    }
 
-  const changeAchievements = Object.entries(achievedCounts!.change).reduce(
-    (imgCounts, [period, counts]) => {
-      let diamonds = 0;
-      let ribbens = 0;
-      for (const key in counts) {
-        // @ts-ignore
-        if (key === '0') diamonds += counts[key];
-        // @ts-ignore
-        else ribbens += counts[key];
-      }
-      // @ts-ignore
-      imgCounts[period === 'days' ? 'bronze' : period === 'weeks' ? 'silver' : 'gold'] = { diamonds, ribbens };
-      return imgCounts;
-    },
-    { bronze: { diamonds: 0, ribbens: 0 }, silver: { diamonds: 0, ribbens: 0 }, gold: { diamonds: 0, ribbens: 0 } },
-  );
-  const highestAchievements = Object.entries(achievedCounts!.honor).reduce(
-    (imgCounts, [period, counts]) => {
-      let diamonds = 0;
-      let ribbens = 0;
-      for (const key in counts) {
-        // @ts-ignore
-        if (key === '0') diamonds += counts[key];
-        // @ts-ignore
-        else ribbens += counts[key];
-      }
-      // @ts-ignore
-      imgCounts[period === 'days' ? 'bronze' : period === 'weeks' ? 'silver' : 'gold'] = { diamonds, ribbens };
-      return imgCounts;
-    },
-    { bronze: { diamonds: 0, ribbens: 0 }, silver: { diamonds: 0, ribbens: 0 }, gold: { diamonds: 0, ribbens: 0 } },
-  );
+    const chart1 = new CalendarHeatMap()
+      .data(Object.entries(chartData).reduce((acc, [date, count]) => {
+        acc.push({ date: new Date(+date), count });
+        return acc;
+      }, [] as { date: Date, count: number }[]))
+      .selector('#calendar-heatmap')
+      .colorRange(['#161b22', '#39d353'])
+      .tooltipEnabled(true)
+      .onClick(function (data: any) {
+        console.log('onClick callback. Data:', data);
+      });
+
+    // render the chart
+    chart1();
+  }, [completedKatas])
 
   return (
     <>
@@ -226,6 +212,7 @@ export default function UserLookup() {
               )}
             </div>
           </div>
+          <div id="calendar-heatmap"></div>
           <table style={{ margin: 'auto' }}>
             <tbody>
               <tr>
